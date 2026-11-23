@@ -1,38 +1,64 @@
 import React from 'react';
 import { BookOpenCheck, Moon, Sun } from 'lucide-react';
+import { SubjectId } from '../types/exam';
 
-export type ActiveTab = 'home' | 'exam' | 'bank';
+export type AppView =
+  | 'hub'
+  | 'mis-home'
+  | 'mis-exam'
+  | 'mis-bank'
+  | 'sta-home'
+  | 'sta-exam'
+  | 'sta-bank'
+  | 'nmkd-home'
+  | 'nmkd-exam'
+  | 'nmkd-bank';
 
 interface HeaderProps {
-  activeTab: ActiveTab;
-  hasActiveExam: boolean;
-  isExamSubmitted: boolean;
+  activeView: AppView;
+  activeSubject: SubjectId;
+  hasActiveUnsubmittedExam: boolean;
   isDarkMode: boolean;
   onToggleTheme: () => void;
-  onNavigate: (tab: ActiveTab) => void;
-  onQuickStartMock: () => void;
-  onQuickStartFull: () => void;
+  onNavigateView: (view: AppView) => void;
+  onOpenBankForActiveSubject: () => void;
+  onQuickStartForActiveSubject: () => void;
   onRequestFinishExam: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  activeTab,
-  hasActiveExam,
-  isExamSubmitted,
+  activeView,
+  activeSubject,
+  hasActiveUnsubmittedExam,
   isDarkMode,
   onToggleTheme,
-  onNavigate,
-  onQuickStartMock,
-  onQuickStartFull,
+  onNavigateView,
+  onOpenBankForActiveSubject,
+  onQuickStartForActiveSubject,
   onRequestFinishExam,
 }) => {
+  const isMisActive = activeView === 'mis-home' || activeView === 'mis-exam';
+  const isStaActive = activeView === 'sta-home' || activeView === 'sta-exam';
+  const isNmkdActive = activeView === 'nmkd-home' || activeView === 'nmkd-exam';
+  const isBankActive =
+    activeView === 'mis-bank' ||
+    activeView === 'sta-bank' ||
+    activeView === 'nmkd-bank';
+
+  const quickStartLabel =
+    activeSubject === 'sta2005'
+      ? 'Bốc đề STA2005'
+      : activeSubject === 'nmkd2026'
+        ? 'Thi thử NMKD'
+        : 'Thi thử MIS2002';
+
   return (
     <header className="sticky top-0 z-30 bg-white dark:bg-[#11192B] border-b border-[#E2E8F0] dark:border-[#243249] transition-colors">
-      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-6 sm:gap-8">
+      <div className="max-w-[1380px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-8">
         {/* Zone 1: Single-line Brand Wordmark */}
         <button
           type="button"
-          onClick={() => onNavigate('home')}
+          onClick={() => onNavigateView('hub')}
           className="flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B4275] dark:focus-visible:outline-[#38BDF8] rounded cursor-pointer"
         >
           <span className="inline-flex items-center justify-center w-8 h-8 rounded bg-[#0B4275] dark:bg-[#1D63A8] text-white font-bold text-xs tracking-tight shrink-0">
@@ -43,51 +69,66 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </button>
 
-        {/* Zone 2: Clean single-line text nav links */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#475569] dark:text-[#94A3B8]">
+        {/* Zone 2: Clean single-line text nav links (5 items) */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#475569] dark:text-[#94A3B8]">
           <button
             type="button"
-            onClick={() => onNavigate('home')}
+            onClick={() => onNavigateView('hub')}
             className={`py-1 transition-colors whitespace-nowrap shrink-0 border-b-2 cursor-pointer ${
-              activeTab === 'home'
+              activeView === 'hub'
                 ? 'text-[#C2410C] dark:text-[#FB923C] border-[#C2410C] dark:border-[#FB923C]'
                 : 'border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
             }`}
           >
-            Trang chủ
+            Môn học
           </button>
           <button
             type="button"
-            onClick={onQuickStartMock}
+            onClick={() => onNavigateView('mis-home')}
             className={`py-1 transition-colors whitespace-nowrap shrink-0 border-b-2 cursor-pointer ${
-              activeTab === 'exam' && hasActiveExam
+              isMisActive
                 ? 'text-[#C2410C] dark:text-[#FB923C] border-[#C2410C] dark:border-[#FB923C]'
                 : 'border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
             }`}
           >
-            Thi thử DUE
+            MIS2002
           </button>
           <button
             type="button"
-            onClick={onQuickStartFull}
-            className="py-1 border-b-2 border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            Trọn bộ 140 câu
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('bank')}
+            onClick={() => onNavigateView('sta-home')}
             className={`py-1 transition-colors whitespace-nowrap shrink-0 border-b-2 cursor-pointer ${
-              activeTab === 'bank'
+              isStaActive
                 ? 'text-[#C2410C] dark:text-[#FB923C] border-[#C2410C] dark:border-[#FB923C]'
                 : 'border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
             }`}
           >
-            Ngân hàng đáp án
+            STA2005
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigateView('nmkd-home')}
+            className={`py-1 transition-colors whitespace-nowrap shrink-0 border-b-2 cursor-pointer ${
+              isNmkdActive
+                ? 'text-[#C2410C] dark:text-[#FB923C] border-[#C2410C] dark:border-[#FB923C]'
+                : 'border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+            }`}
+          >
+            MGT2002
+          </button>
+          <button
+            type="button"
+            onClick={onOpenBankForActiveSubject}
+            className={`py-1 transition-colors whitespace-nowrap shrink-0 border-b-2 cursor-pointer ${
+              isBankActive
+                ? 'text-[#C2410C] dark:text-[#FB923C] border-[#C2410C] dark:border-[#FB923C]'
+                : 'border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+            }`}
+          >
+            Ngân hàng đề
           </button>
         </nav>
 
-        {/* Zone 3: Theme Toggle + Primary Action */}
+        {/* Zone 3: Theme Toggle + 1 Context-Aware Primary Action */}
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             type="button"
@@ -109,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {activeTab === 'exam' && hasActiveExam && !isExamSubmitted ? (
+          {hasActiveUnsubmittedExam ? (
             <button
               type="button"
               onClick={onRequestFinishExam}
@@ -121,14 +162,63 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <button
               type="button"
-              onClick={onQuickStartMock}
+              onClick={onQuickStartForActiveSubject}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
-              Bắt đầu thi thử
+              {quickStartLabel}
             </button>
           )}
         </div>
       </div>
+
+      {/* Mobile compact subject strip (< md) */}
+      <nav className="md:hidden border-t border-[#E2E8F0] dark:border-[#243249] px-4 py-2 flex items-center justify-between gap-3 text-xs font-medium text-[#475569] dark:text-[#94A3B8] overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => onNavigateView('hub')}
+          className={`whitespace-nowrap cursor-pointer ${
+            activeView === 'hub' ? 'text-[#C2410C] dark:text-[#FB923C] font-bold' : ''
+          }`}
+        >
+          Môn học
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateView('mis-home')}
+          className={`whitespace-nowrap cursor-pointer ${
+            isMisActive ? 'text-[#C2410C] dark:text-[#FB923C] font-bold' : ''
+          }`}
+        >
+          MIS2002
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateView('sta-home')}
+          className={`whitespace-nowrap cursor-pointer ${
+            isStaActive ? 'text-[#C2410C] dark:text-[#FB923C] font-bold' : ''
+          }`}
+        >
+          STA2005
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateView('nmkd-home')}
+          className={`whitespace-nowrap cursor-pointer ${
+            isNmkdActive ? 'text-[#C2410C] dark:text-[#FB923C] font-bold' : ''
+          }`}
+        >
+          MGT2002
+        </button>
+        <button
+          type="button"
+          onClick={onOpenBankForActiveSubject}
+          className={`whitespace-nowrap cursor-pointer ${
+            isBankActive ? 'text-[#C2410C] dark:text-[#FB923C] font-bold' : ''
+          }`}
+        >
+          Ngân hàng đề
+        </button>
+      </nav>
     </header>
   );
 };

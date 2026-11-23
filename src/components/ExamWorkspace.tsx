@@ -32,6 +32,9 @@ import { QuizNavigator } from './QuizNavigator';
 interface ExamWorkspaceProps {
   config: ExamConfig;
   finishTriggerCount: number;
+  questionBankById?: Record<number, ExamQuestion>;
+  courseHeading?: string;
+  newMockLabel?: string;
   onExitToHome: () => void;
   onStartRetryWrong: (wrongIds: number[]) => void;
   onStartNewMock: () => void;
@@ -53,6 +56,9 @@ type ReviewFilter = 'all' | 'wrong' | 'unanswered' | 'flagged' | 'essay';
 export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
   config,
   finishTriggerCount,
+  questionBankById = QUESTION_BY_ID,
+  courseHeading = '[271] Hệ thống thông tin quản lý [MIS2002_51K33]',
+  newMockLabel = 'Tạo đề thi thử mới',
   onExitToHome,
   onStartRetryWrong,
   onStartNewMock,
@@ -61,9 +67,9 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
   const questions = useMemo<ExamQuestion[]>(
     () =>
       config.questionIds
-        .map((id) => QUESTION_BY_ID[id])
+        .map((id) => questionBankById[id])
         .filter((q): q is ExamQuestion => Boolean(q)),
-    [config.questionIds]
+    [config.questionIds, questionBankById]
   );
 
   const [answers, setAnswers] = useState<Record<number, UserAnswer>>({});
@@ -376,7 +382,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
       {/* DUE Course Title + Back Button */}
       <div className="mb-5">
         <h1 className="text-2xl sm:text-[30px] font-bold tracking-tight text-[#C2410C] dark:text-[#FB923C] leading-snug">
-          [271] Hệ thống thông tin quản lý [MIS2002_51K33]
+          {courseHeading}
         </h1>
         <p className="mt-1 text-sm text-[#475569] dark:text-[#94A3B8]">
           {config.title} · {config.subtitle} · Biên soạn:{' '}
@@ -488,55 +494,86 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
-                Tạo đề thi thử mới
+                {newMockLabel}
               </button>
             </div>
           </div>
 
           {/* Per-Section Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 border-b border-[#E2E8F0] dark:border-[#243249] text-sm">
-            <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
-              <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
-                Phần I · Trắc nghiệm
+          {summary.short.total === 0 && summary.essay.total === 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 border-b border-[#E2E8F0] dark:border-[#243249] text-sm">
+              <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+                <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                  Số câu trắc nghiệm đúng
+                </div>
+                <div className="mt-1 text-lg font-bold text-[#047857] dark:text-[#34D399] tabular-nums font-mono">
+                  {summary.mcq.correct}/{summary.mcq.total} câu
+                </div>
               </div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
-                  {summary.mcq.correct}/{summary.mcq.total} câu đúng
-                </span>
-                <span className="text-xs font-mono tabular-nums text-[#047857] dark:text-[#34D399] font-semibold">
-                  {summary.mcq.earned.toFixed(1)}/{summary.mcq.max.toFixed(1)} đ
-                </span>
+              <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+                <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                  Sai / Chưa làm
+                </div>
+                <div className="mt-1 text-lg font-bold text-[#B91C1C] dark:text-[#F87171] tabular-nums font-mono">
+                  {summary.wrongQuestionIds.length} câu
+                </div>
+              </div>
+              <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+                <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                  Tỷ lệ chính xác
+                </div>
+                <div className="mt-1 text-lg font-bold text-[#0B4275] dark:text-[#38BDF8] tabular-nums font-mono">
+                  {summary.mcq.total > 0
+                    ? `${Math.round((summary.mcq.correct / summary.mcq.total) * 100)}%`
+                    : '0%'}
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 border-b border-[#E2E8F0] dark:border-[#243249] text-sm">
+              <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+                <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                  Phần I · Trắc nghiệm
+                </div>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                    {summary.mcq.correct}/{summary.mcq.total} câu đúng
+                  </span>
+                  <span className="text-xs font-mono tabular-nums text-[#047857] dark:text-[#34D399] font-semibold">
+                    {summary.mcq.earned.toFixed(1)}/{summary.mcq.max.toFixed(1)} đ
+                  </span>
+                </div>
+              </div>
 
-            <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
-              <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
-                Phần II · Tự luận ngắn
+              <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+                <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                  Phần II · Tự luận ngắn
+                </div>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                    {summary.short.correct}/{summary.short.total} câu đúng
+                  </span>
+                  <span className="text-xs font-mono tabular-nums text-[#047857] dark:text-[#34D399] font-semibold">
+                    {summary.short.earned.toFixed(1)}/{summary.short.max.toFixed(1)} đ
+                  </span>
+                </div>
               </div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
-                  {summary.short.correct}/{summary.short.total} câu đúng
-                </span>
-                <span className="text-xs font-mono tabular-nums text-[#047857] dark:text-[#34D399] font-semibold">
-                  {summary.short.earned.toFixed(1)}/{summary.short.max.toFixed(1)} đ
-                </span>
-              </div>
-            </div>
 
-            <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
-              <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
-                Phần III · Tự luận (tự chấm theo ý)
-              </div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
-                  {summary.essay.answered}/{summary.essay.total} câu đã viết
-                </span>
-                <span className="text-xs font-mono tabular-nums text-[#B45309] dark:text-[#FBBF24] font-semibold">
-                  {summary.essay.earned.toFixed(2)}/{summary.essay.max.toFixed(1)} đ
-                </span>
+              <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+                <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                  Phần III · Tự luận (tự chấm theo ý)
+                </div>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
+                    {summary.essay.answered}/{summary.essay.total} câu đã viết
+                  </span>
+                  <span className="text-xs font-mono tabular-nums text-[#B45309] dark:text-[#FBBF24] font-semibold">
+                    {summary.essay.earned.toFixed(2)}/{summary.essay.max.toFixed(1)} đ
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Interactive Review Filter Bar */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

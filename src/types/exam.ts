@@ -1,3 +1,5 @@
+export type SubjectId = 'mis2002' | 'sta2005' | 'nmkd2026';
+
 export type QuestionType = 'mcq' | 'short' | 'essay';
 
 export type McqOptionKey = 'a' | 'b' | 'c' | 'd' | 'e';
@@ -95,6 +97,7 @@ export interface QuestionGradeResult {
 
 export interface ExamHistoryRecord {
   id: string;
+  subjectId?: SubjectId;
   title: string;
   completedAt: string;
   totalQuestions: number;
@@ -105,6 +108,10 @@ export interface ExamHistoryRecord {
   durationSeconds: number;
   wrongQuestionIds: number[];
   gradingMode: GradingMode;
+  /** Optional STA2005 exam code (1..18) for direct retake */
+  staExamNumber?: number;
+  /** Optional NMKD 2026 exam code (1..10) for direct retake */
+  nmkdExamNumber?: number;
 }
 
 export interface ChapterInfo {
@@ -112,3 +119,42 @@ export interface ChapterInfo {
   title: string;
   shortTitle: string;
 }
+
+/* ==================== STA2005 (Xác suất thống kê toán) Types ==================== */
+
+export interface StaRubricStep {
+  id: string;
+  label: string;
+  points: number;
+  expected: string;
+  keywords: string[];
+}
+
+export interface StaProblem {
+  number: 1 | 2 | 3;
+  points: number;
+  stem: string;
+  subParts: string[];
+  solution: string;
+  mathNote?: string;
+  rubric: StaRubricStep[];
+}
+
+export interface StaExamPaper {
+  examNumber: number;
+  code: string;
+  topicSummary: string;
+  timeLimitMinutes: number;
+  problems: [StaProblem, StaProblem, StaProblem];
+}
+
+/* ==================== NMKD 2026 (Nhập môn kinh doanh - MGT2002) Types ==================== */
+
+export interface NmkdExamSet {
+  examNumber: number;
+  code: string;
+  examCode: string;
+  title: string;
+  questionIds: number[];
+}
+

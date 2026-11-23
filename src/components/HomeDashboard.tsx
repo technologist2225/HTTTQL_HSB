@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpen,
   CheckCircle2,
@@ -22,6 +23,7 @@ import { formatTimeClock } from '../utils/grading';
 
 interface HomeDashboardProps {
   history: ExamHistoryRecord[];
+  onBackToHub?: () => void;
   onStartDueMock: (gradingMode: GradingMode, timeMinutes: number) => void;
   onStartFullBank: (gradingMode: GradingMode) => void;
   onStartCustomExam: (options: {
@@ -40,6 +42,7 @@ interface HomeDashboardProps {
 
 export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   history,
+  onBackToHub,
   onStartDueMock,
   onStartFullBank,
   onStartCustomExam,
@@ -47,6 +50,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   onOpenQuestionBank,
   onClearHistory,
 }) => {
+  const misHistory = history.filter((item) => (item.subjectId ?? 'mis2002') === 'mis2002');
   const [selectedGradingMode, setSelectedGradingMode] = useState<GradingMode>('submit');
   const [selectedChapters, setSelectedChapters] = useState<number[]>([1, 2, 3, 4, 5, 6, 7]);
   const [mcqCount, setMcqCount] = useState(10);
@@ -99,12 +103,24 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
     <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
       {/* Course Banner */}
       <section className="pb-8 border-b border-[#E2E8F0] dark:border-[#243249]">
-        <p className="text-sm font-medium text-[#475569] dark:text-[#94A3B8]">
-          Trường Đại học Kinh tế – Đại học Đà Nẵng · Thực hiện bởi{' '}
-          <span className="font-semibold text-[#0B4275] dark:text-[#38BDF8]">
-            Anh Hoàng 51K33
-          </span>
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-[#475569] dark:text-[#94A3B8]">
+            Trường Đại học Kinh tế – Đại học Đà Nẵng · Thực hiện bởi{' '}
+            <span className="font-semibold text-[#0B4275] dark:text-[#38BDF8]">
+              Anh Hoàng 51K33
+            </span>
+          </p>
+          {onBackToHub && (
+            <button
+              type="button"
+              onClick={onBackToHub}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#0B4275] dark:text-[#38BDF8] hover:underline cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Tất cả môn học
+            </button>
+          )}
+        </div>
         <h1 className="mt-2 text-2xl sm:text-4xl font-bold tracking-tight text-[#C2410C] dark:text-[#FB923C] max-w-4xl">
           [271] Hệ thống thông tin quản lý [MIS2002_51K33]
         </h1>
@@ -446,7 +462,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 Lịch sử làm bài
               </h2>
             </div>
-            {history.length > 0 && (
+            {misHistory.length > 0 && (
               <button
                 type="button"
                 onClick={onClearHistory}
@@ -458,17 +474,17 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             )}
           </div>
 
-          {history.length === 0 ? (
+          {misHistory.length === 0 ? (
             <div className="py-10 text-center text-sm text-[#64748B] dark:text-[#94A3B8]">
               <Clock className="w-7 h-7 mx-auto mb-2 text-[#94A3B8] dark:text-[#64748B]" />
-              <p>Chưa có lượt làm bài nào được lưu.</p>
+              <p>Chưa có lượt làm bài MIS2002 nào được lưu.</p>
               <p className="mt-1 text-xs">
                 Sau khi nộp bài, điểm số và danh sách câu cần ôn lại sẽ hiển thị tại đây.
               </p>
             </div>
           ) : (
             <div className="divide-y divide-[#E2E8F0] dark:divide-[#243249]">
-              {history.slice(0, 6).map((item) => (
+              {misHistory.slice(0, 6).map((item) => (
                 <div key={item.id} className="py-3.5 first:pt-0 last:pb-0">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
