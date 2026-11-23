@@ -126,7 +126,6 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
   const handleConfirmSubmit = () => {
     if (isSubmitted) return;
 
-    // Pre-populate essay rubric checkboxes with auto-detected keywords for transparency
     const nextAnswers: Record<number, UserAnswer> = { ...answers };
     for (const q of questions) {
       if (q.type === 'essay') {
@@ -211,7 +210,6 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
       [questionId]: {
         ...prev[questionId],
         essay: value,
-        // Clear cached manual rubric checks if student edits essay before submission
         essayRubricChecked: isSubmitted ? prev[questionId]?.essayRubricChecked : undefined,
         checked: config.gradingMode === 'instant' ? false : prev[questionId]?.checked,
       },
@@ -281,7 +279,6 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
       const prevType =
         currentBucket.length > 0 ? currentBucket[0].question.type : null;
 
-      // Essays are 1 per page like screenshot 3; MCQ/Short follow questionsPerPage
       const maxInBucket = q.type === 'essay' ? 1 : config.questionsPerPage;
 
       if (
@@ -378,11 +375,14 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
     <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* DUE Course Title + Back Button */}
       <div className="mb-5">
-        <h1 className="text-2xl sm:text-[30px] font-bold tracking-tight text-[#C2410C] leading-snug">
-          [271] Hệ thống thông tin quản lý [MIS2002]
+        <h1 className="text-2xl sm:text-[30px] font-bold tracking-tight text-[#C2410C] dark:text-[#FB923C] leading-snug">
+          [271] Hệ thống thông tin quản lý [MIS2002_51K33]
         </h1>
-        <p className="mt-1 text-sm text-[#475569]">
-          {config.title} · {config.subtitle}
+        <p className="mt-1 text-sm text-[#475569] dark:text-[#94A3B8]">
+          {config.title} · {config.subtitle} · Biên soạn:{' '}
+          <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+            Anh Hoàng 51K33
+          </span>
         </p>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -390,7 +390,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
             <button
               type="button"
               onClick={onExitToHome}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#C2410C] hover:bg-[#9A3412] rounded transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#C2410C] hover:bg-[#9A3412] dark:bg-[#EA580C] dark:hover:bg-[#C2410C] rounded transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               Quay lại
@@ -399,9 +399,9 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
             <button
               type="button"
               onClick={() => setShowMobileNav(true)}
-              className="lg:hidden inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-[#0F172A] bg-white border border-[#CBD5E1] rounded hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+              className="lg:hidden inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-[#0F172A] dark:text-[#F8FAFC] bg-white dark:bg-[#151F32] border border-[#CBD5E1] dark:border-[#334155] rounded hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B] transition-colors cursor-pointer"
             >
-              <LayoutGrid className="w-4 h-4 text-[#0B4275]" />
+              <LayoutGrid className="w-4 h-4 text-[#0B4275] dark:text-[#38BDF8]" />
               Bảng câu hỏi ({summary.answeredCount}/{questions.length})
             </button>
           </div>
@@ -413,11 +413,11 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 <div
                   className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded border text-sm font-medium tabular-nums ${
                     isLowTime
-                      ? 'bg-[#FEF2F2] border-[#DC2626] text-[#B91C1C]'
-                      : 'bg-white border-[#C2410C]/40 text-[#0F172A]'
+                      ? 'bg-[#FEF2F2] dark:bg-[#7F1D1D]/40 border-[#DC2626] dark:border-[#EF4444] text-[#B91C1C] dark:text-[#FCA5A5]'
+                      : 'bg-white dark:bg-[#151F32] border-[#C2410C]/40 dark:border-[#FB923C]/40 text-[#0F172A] dark:text-[#F8FAFC]'
                   }`}
                 >
-                  <Clock className="w-4 h-4 text-[#C2410C] shrink-0" />
+                  <Clock className="w-4 h-4 text-[#C2410C] dark:text-[#FB923C] shrink-0" />
                   <span>
                     {remainingSeconds !== null ? 'Thời gian còn lại' : 'Thời gian làm bài'}
                   </span>
@@ -431,7 +431,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
               <button
                 type="button"
                 onClick={() => setHideTimer((prev) => !prev)}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold text-white bg-[#C2410C] hover:bg-[#9A3412] rounded transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-semibold text-white bg-[#C2410C] hover:bg-[#9A3412] dark:bg-[#EA580C] dark:hover:bg-[#C2410C] rounded transition-colors cursor-pointer"
               >
                 {hideTimer ? (
                   <>
@@ -452,19 +452,19 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
 
       {/* Post-Submission Result Summary Banner */}
       {isSubmitted && (
-        <section className="mb-6 bg-white border border-[#CBD5E1] rounded p-5 sm:p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-[#E2E8F0]">
+        <section className="mb-6 bg-white dark:bg-[#151F32] border border-[#CBD5E1] dark:border-[#2B3B54] rounded p-5 sm:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-[#E2E8F0] dark:border-[#243249]">
             <div>
-              <p className="text-xs font-semibold text-[#0B4275] mb-1">
+              <p className="text-xs font-semibold text-[#0B4275] dark:text-[#38BDF8] mb-1">
                 Kết quả kiểm tra & Đối chiếu đáp án
               </p>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A]">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">
                 Tổng điểm:{' '}
-                <span className="text-[#C2410C] font-mono tabular-nums">
+                <span className="text-[#C2410C] dark:text-[#FB923C] font-mono tabular-nums">
                   {summary.scoreOutOf10.toFixed(2)} / 10.00
                 </span>
               </h2>
-              <p className="mt-1 text-sm text-[#475569] tabular-nums">
+              <p className="mt-1 text-sm text-[#475569] dark:text-[#94A3B8] tabular-nums">
                 Đạt {summary.earnedPoints.toFixed(2)} / {summary.maxPoints.toFixed(1)} điểm gốc · Đã làm{' '}
                 {summary.answeredCount}/{summary.totalCount} câu · Thời gian:{' '}
                 {formatTimeClock(elapsedSeconds)}
@@ -476,7 +476,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => onStartRetryWrong(summary.wrongQuestionIds)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#C2410C] hover:bg-[#9A3412] rounded transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#C2410C] hover:bg-[#9A3412] dark:bg-[#EA580C] dark:hover:bg-[#C2410C] rounded transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Làm lại {summary.wrongQuestionIds.length} câu chưa đạt
@@ -485,7 +485,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
               <button
                 type="button"
                 onClick={onStartNewMock}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] rounded transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-4 h-4" />
                 Tạo đề thi thử mới
@@ -494,40 +494,44 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
           </div>
 
           {/* Per-Section Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 border-b border-[#E2E8F0] text-sm">
-            <div className="p-3.5 rounded bg-[#F8FAFC] border border-[#E2E8F0]">
-              <div className="text-xs font-medium text-[#64748B]">Phần I · Trắc nghiệm</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 border-b border-[#E2E8F0] dark:border-[#243249] text-sm">
+            <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+              <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                Phần I · Trắc nghiệm
+              </div>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-bold text-[#0F172A] tabular-nums">
+                <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
                   {summary.mcq.correct}/{summary.mcq.total} câu đúng
                 </span>
-                <span className="text-xs font-mono tabular-nums text-[#047857] font-semibold">
+                <span className="text-xs font-mono tabular-nums text-[#047857] dark:text-[#34D399] font-semibold">
                   {summary.mcq.earned.toFixed(1)}/{summary.mcq.max.toFixed(1)} đ
                 </span>
               </div>
             </div>
 
-            <div className="p-3.5 rounded bg-[#F8FAFC] border border-[#E2E8F0]">
-              <div className="text-xs font-medium text-[#64748B]">Phần II · Tự luận ngắn</div>
+            <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+              <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+                Phần II · Tự luận ngắn
+              </div>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-bold text-[#0F172A] tabular-nums">
+                <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
                   {summary.short.correct}/{summary.short.total} câu đúng
                 </span>
-                <span className="text-xs font-mono tabular-nums text-[#047857] font-semibold">
+                <span className="text-xs font-mono tabular-nums text-[#047857] dark:text-[#34D399] font-semibold">
                   {summary.short.earned.toFixed(1)}/{summary.short.max.toFixed(1)} đ
                 </span>
               </div>
             </div>
 
-            <div className="p-3.5 rounded bg-[#F8FAFC] border border-[#E2E8F0]">
-              <div className="text-xs font-medium text-[#64748B]">
+            <div className="p-3.5 rounded bg-[#F8FAFC] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-[#243249]">
+              <div className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
                 Phần III · Tự luận (tự chấm theo ý)
               </div>
               <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-lg font-bold text-[#0F172A] tabular-nums">
+                <span className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
                   {summary.essay.answered}/{summary.essay.total} câu đã viết
                 </span>
-                <span className="text-xs font-mono tabular-nums text-[#B45309] font-semibold">
+                <span className="text-xs font-mono tabular-nums text-[#B45309] dark:text-[#FBBF24] font-semibold">
                   {summary.essay.earned.toFixed(2)}/{summary.essay.max.toFixed(1)} đ
                 </span>
               </div>
@@ -536,7 +540,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
 
           {/* Interactive Review Filter Bar */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-1 p-1 bg-[#F1F5F9] rounded-md">
+            <div className="flex flex-wrap items-center gap-1 p-1 bg-[#F1F5F9] dark:bg-[#0F172A] rounded-md">
               {(
                 [
                   { id: 'all', label: `Tất cả (${questions.length})` },
@@ -560,8 +564,8 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                   onClick={() => setReviewFilter(tab.id)}
                   className={`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap cursor-pointer ${
                     reviewFilter === tab.id
-                      ? 'bg-white text-[#0F172A] shadow-xs'
-                      : 'text-[#475569] hover:text-[#0F172A]'
+                      ? 'bg-white dark:bg-[#1E293B] text-[#0F172A] dark:text-[#F8FAFC] shadow-xs'
+                      : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
                   }`}
                 >
                   {tab.label}
@@ -569,7 +573,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
               ))}
             </div>
 
-            <p className="text-xs text-[#475569]">
+            <p className="text-xs text-[#475569] dark:text-[#94A3B8]">
               Mẹo: Với câu tự luận, tích chọn các ý chính bạn đã trình bày đúng để cập nhật tổng điểm ngay lập tức.
             </p>
           </div>
@@ -581,7 +585,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
         <div className="flex-1 w-full min-w-0">
           {/* Page indicator when paginated */}
           {!showAllOnOnePage && !(isSubmitted && reviewFilter !== 'all') && (
-            <div className="mb-4 flex items-center justify-between text-xs text-[#475569]">
+            <div className="mb-4 flex items-center justify-between text-xs text-[#475569] dark:text-[#94A3B8]">
               <span className="font-medium">
                 Trang {safePage + 1} trên tổng số {totalPages}
               </span>
@@ -596,15 +600,15 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
           )}
 
           {displayedItems.length === 0 ? (
-            <div className="bg-white border border-[#D6DCE2] rounded p-8 text-center">
-              <CheckCircle2 className="w-8 h-8 text-[#059669] mx-auto mb-2" />
-              <p className="text-sm font-semibold text-[#0F172A]">
+            <div className="bg-white dark:bg-[#151F32] border border-[#D6DCE2] dark:border-[#2B3B54] rounded p-8 text-center">
+              <CheckCircle2 className="w-8 h-8 text-[#059669] dark:text-[#34D399] mx-auto mb-2" />
+              <p className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
                 Không có câu hỏi nào trong bộ lọc này.
               </p>
               <button
                 type="button"
                 onClick={() => setReviewFilter('all')}
-                className="mt-3 px-4 py-1.5 text-xs font-semibold text-white bg-[#0B4275] rounded hover:bg-[#083259] cursor-pointer"
+                className="mt-3 px-4 py-1.5 text-xs font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded cursor-pointer"
               >
                 Xem lại tất cả câu hỏi
               </button>
@@ -633,13 +637,13 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
           )}
 
           {/* Bottom Navigation Bar (Trang trước / Trang tiếp / Làm xong ...) */}
-          <div className="mt-8 pt-4 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
+          <div className="mt-8 pt-4 border-t border-[#E2E8F0] dark:border-[#243249] flex flex-wrap items-center justify-between gap-3">
             <div>
               {!showAllOnOnePage && safePage > 0 && (
                 <button
                   type="button"
                   onClick={() => handleChangePage(safePage - 1)}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] rounded transition-colors cursor-pointer"
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
                 >
                   Trang trước
                 </button>
@@ -651,7 +655,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => handleChangePage(safePage + 1)}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] rounded transition-colors cursor-pointer"
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
                 >
                   Trang tiếp
                 </button>
@@ -659,7 +663,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowSummaryModal(true)}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] rounded transition-colors cursor-pointer"
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
                 >
                   Làm xong ...
                 </button>
@@ -667,7 +671,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 <button
                   type="button"
                   onClick={onExitToHome}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] rounded transition-colors cursor-pointer"
+                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
                 >
                   Hoàn tất xem lại
                 </button>
@@ -695,14 +699,16 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
 
       {/* Mobile Quiz Navigator Drawer */}
       {showMobileNav && (
-        <div className="fixed inset-0 z-50 lg:hidden flex justify-end bg-black/40">
-          <div className="w-80 max-w-[88vw] bg-white h-full p-4 overflow-y-auto shadow-xl">
+        <div className="fixed inset-0 z-50 lg:hidden flex justify-end bg-black/55">
+          <div className="w-80 max-w-[88vw] bg-white dark:bg-[#11192B] h-full p-4 overflow-y-auto shadow-xl">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-bold text-[#0F172A]">Điều hướng bài làm</span>
+              <span className="text-sm font-bold text-[#0F172A] dark:text-[#F8FAFC]">
+                Điều hướng bài làm
+              </span>
               <button
                 type="button"
                 onClick={() => setShowMobileNav(false)}
-                className="p-1.5 text-[#475569] hover:text-[#0F172A] rounded cursor-pointer"
+                className="p-1.5 text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] rounded cursor-pointer"
                 aria-label="Đóng bảng câu hỏi"
               >
                 <X className="w-5 h-5" />
@@ -733,23 +739,23 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
       {/* Moodle-style Pre-Submission Summary Modal ("Tóm tắt lần làm bài") */}
       {showSummaryModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
           role="dialog"
           aria-modal="true"
           aria-labelledby="submit-summary-title"
         >
-          <div className="bg-white rounded border border-[#CBD5E1] max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-xl">
-            <div className="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+          <div className="bg-white dark:bg-[#151F32] rounded border border-[#CBD5E1] dark:border-[#2B3B54] max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-xl">
+            <div className="px-5 py-4 border-b border-[#E2E8F0] dark:border-[#243249] flex items-center justify-between">
               <h2
                 id="submit-summary-title"
-                className="text-lg font-bold text-[#0F172A]"
+                className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC]"
               >
                 Tóm tắt lần làm bài
               </h2>
               <button
                 type="button"
                 onClick={() => setShowSummaryModal(false)}
-                className="p-1.5 text-[#475569] hover:text-[#0F172A] rounded cursor-pointer"
+                className="p-1.5 text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC] rounded cursor-pointer"
                 aria-label="Đóng"
               >
                 <X className="w-5 h-5" />
@@ -758,7 +764,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
 
             <div className="p-5 overflow-y-auto flex-1">
               {summary.answeredCount < questions.length && (
-                <div className="mb-4 p-3.5 rounded bg-[#FFFBEB] border border-[#FCD34D] text-sm text-[#92400E] flex items-start gap-2.5">
+                <div className="mb-4 p-3.5 rounded bg-[#FFFBEB] dark:bg-[#451A03]/40 border border-[#FCD34D] dark:border-[#B45309]/60 text-sm text-[#92400E] dark:text-[#FDE68A] flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                   <span>
                     Bạn còn{' '}
@@ -770,9 +776,9 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                 </div>
               )}
 
-              <div className="border border-[#E2E8F0] rounded overflow-hidden">
+              <div className="border border-[#E2E8F0] dark:border-[#243249] rounded overflow-hidden">
                 <table className="w-full text-sm text-left border-collapse">
-                  <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-semibold text-[#475569]">
+                  <thead className="bg-[#F8FAFC] dark:bg-[#0F172A] border-b border-[#E2E8F0] dark:border-[#243249] text-xs font-semibold text-[#475569] dark:text-[#94A3B8]">
                     <tr>
                       <th className="px-4 py-2.5">Câu hỏi</th>
                       <th className="px-4 py-2.5">Dạng bài</th>
@@ -780,19 +786,22 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                       <th className="px-4 py-2.5 text-right">Thao tác</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E2E8F0]">
+                  <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#243249]">
                     {questions.map((q, idx) => {
                       const answered = isQuestionAnswered(q, answers[q.id]);
                       const flagged = flaggedIds.has(q.id);
                       return (
-                        <tr key={q.id} className="hover:bg-[#F8FAFC]">
-                          <td className="px-4 py-2.5 font-semibold text-[#0F172A] tabular-nums">
+                        <tr
+                          key={q.id}
+                          className="hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B]/60"
+                        >
+                          <td className="px-4 py-2.5 font-semibold text-[#0F172A] dark:text-[#F8FAFC] tabular-nums">
                             Câu {idx + 1}
                             {flagged && (
                               <Flag className="inline-block w-3.5 h-3.5 ml-1.5 fill-[#DC2626] text-[#DC2626]" />
                             )}
                           </td>
-                          <td className="px-4 py-2.5 text-[#475569]">
+                          <td className="px-4 py-2.5 text-[#475569] dark:text-[#CBD5E1]">
                             {q.type === 'mcq'
                               ? 'Trắc nghiệm'
                               : q.type === 'short'
@@ -801,12 +810,12 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                           </td>
                           <td className="px-4 py-2.5">
                             {answered ? (
-                              <span className="inline-flex items-center gap-1 text-[#047857] font-medium">
+                              <span className="inline-flex items-center gap-1 text-[#047857] dark:text-[#34D399] font-medium">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                                 Đã lưu câu trả lời
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[#B91C1C]">
+                              <span className="inline-flex items-center gap-1 text-[#B91C1C] dark:text-[#F87171]">
                                 <XCircle className="w-3.5 h-3.5" />
                                 Chưa trả lời
                               </span>
@@ -819,7 +828,7 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
                                 setShowSummaryModal(false);
                                 handleJumpToQuestion(idx);
                               }}
-                              className="text-xs font-semibold text-[#0B4275] hover:underline cursor-pointer"
+                              className="text-xs font-semibold text-[#0B4275] dark:text-[#38BDF8] hover:underline cursor-pointer"
                             >
                               Đi tới câu
                             </button>
@@ -832,18 +841,18 @@ export const ExamWorkspace: React.FC<ExamWorkspaceProps> = ({
               </div>
             </div>
 
-            <div className="px-5 py-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex flex-wrap items-center justify-between gap-3">
+            <div className="px-5 py-4 border-t border-[#E2E8F0] dark:border-[#243249] bg-[#F8FAFC] dark:bg-[#0F172A] flex flex-wrap items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setShowSummaryModal(false)}
-                className="px-4 py-2 text-sm font-medium text-[#334155] bg-white border border-[#CBD5E1] hover:bg-[#F1F5F9] rounded transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-medium text-[#334155] dark:text-[#E2E8F0] bg-white dark:bg-[#1E293B] border border-[#CBD5E1] dark:border-[#334155] hover:bg-[#F1F5F9] dark:hover:bg-[#273549] rounded transition-colors cursor-pointer"
               >
                 Quay lại làm bài
               </button>
               <button
                 type="button"
                 onClick={handleConfirmSubmit}
-                className="px-5 py-2 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] rounded transition-colors cursor-pointer"
+                className="px-5 py-2 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
               >
                 Nộp bài và kết thúc
               </button>

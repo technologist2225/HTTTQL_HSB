@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -6,15 +7,38 @@
 }
 
 @layer base {
+  :root {
+    --surface-canvas: #f8fafc;
+    --surface-card: #ffffff;
+    --surface-subtle: #f3f5f7;
+    --surface-question: #e7f3f5;
+    --border-subtle: #d6dce2;
+    --text-primary: #1e293b;
+    color-scheme: light;
+  }
+
+  .dark {
+    --surface-canvas: #0b1120;
+    --surface-card: #151f32;
+    --surface-subtle: #182338;
+    --surface-question: #122631;
+    --border-subtle: #2b3b54;
+    --text-primary: #e2e8f0;
+    color-scheme: dark;
+  }
+
   html {
     font-family: var(--font-sans);
     scroll-behavior: smooth;
+    background-color: var(--surface-canvas);
+    color: var(--text-primary);
   }
 
   body {
     margin: 0;
-    background-color: #f8fafc;
-    color: #1e293b;
+    background-color: var(--surface-canvas);
+    color: var(--text-primary);
+    transition: background-color 180ms ease, color 180ms ease;
   }
 }
 
@@ -22,7 +46,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom radio focus & crisp appearance */
 input[type="radio"] {
   accent-color: #0b4275;
 }
@@ -31,8 +54,16 @@ input[type="checkbox"] {
   accent-color: #0b4275;
 }
 
+.dark input[type="radio"],
+.dark input[type="checkbox"] {
+  accent-color: #38bdf8;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  body {
+    transition: none;
   }
 }

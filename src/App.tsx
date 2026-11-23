@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ALL_QUESTIONS,
   buildRandomDueMockExamIds,
@@ -18,12 +18,47 @@ import { HomeDashboard } from './components/HomeDashboard';
 import { ExamWorkspace } from './components/ExamWorkspace';
 import { QuestionBankView } from './components/QuestionBankView';
 
+const THEME_STORAGE_KEY = 'due_mis2002_theme';
+
+function getInitialDarkMode(): boolean {
+  try {
+    const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === 'dark') return true;
+    if (saved === 'light') return false;
+    return (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [activeExam, setActiveExam] = useState<ExamConfig | null>(null);
   const [isCurrentExamSubmitted, setIsCurrentExamSubmitted] = useState(false);
   const [finishTriggerCount, setFinishTriggerCount] = useState(0);
   const [history, setHistory] = useState<ExamHistoryRecord[]>(() => loadExamHistory());
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => getInitialDarkMode());
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light');
+    } catch {
+      // Ignore storage errors
+    }
+  }, [isDarkMode]);
+
+  const handleToggleTheme = useCallback(() => {
+    setIsDarkMode((prev) => !prev);
+  }, []);
 
   const startDueMockExam = useCallback(
     (gradingMode: GradingMode = 'submit', timeMinutes = 15) => {
@@ -186,11 +221,13 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#1E293B]">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0B1120] text-[#1E293B] dark:text-[#E2E8F0] transition-colors">
       <Header
         activeTab={activeTab}
         hasActiveExam={Boolean(activeExam)}
         isExamSubmitted={isCurrentExamSubmitted}
+        isDarkMode={isDarkMode}
+        onToggleTheme={handleToggleTheme}
         onNavigate={(tab) => {
           setActiveTab(tab);
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -237,14 +274,14 @@ export default function App() {
 
       {/* Signature DUE E-Study Bottom Accent Footer */}
       <footer className="mt-12">
-        <div className="h-1 bg-[#C2410C]" />
-        <div className="bg-[#0B4275] text-white/90">
+        <div className="h-1 bg-[#C2410C] dark:bg-[#EA580C]" />
+        <div className="bg-[#0B4275] dark:bg-[#0F1B2E] text-white/90">
           <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span>
-              DUE E-Study · Bộ đề ôn tập Hệ thống thông tin quản lý (MIS2002)
+              DUE E-Study · Bộ đề ôn tập Hệ thống thông tin quản lý (MIS2002_51K33)
             </span>
-            <span className="text-white/75">
-              100 câu trắc nghiệm · 30 câu tự luận ngắn · 10 câu tự luận kèm đáp án
+            <span className="text-white/90 font-medium">
+              Thực hiện bởi <strong className="text-white">Anh Hoàng 51K33</strong> · 140 câu hỏi kèm đáp án
             </span>
           </div>
         </div>
