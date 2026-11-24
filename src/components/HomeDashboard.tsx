@@ -6,26 +6,24 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  Flame,
   History,
   Play,
   RotateCcw,
   SlidersHorizontal,
   Trash2,
 } from 'lucide-react';
-import {
-  CHAPTERS,
-  ESSAY_QUESTIONS,
-  MCQ_QUESTIONS,
-  SHORT_ANSWER_QUESTIONS,
-} from '../data';
+import { CHAPTERS, getMisQuestionPools, MisQuestionSet } from '../data';
 import { ExamHistoryRecord, GradingMode } from '../types/exam';
 import { formatTimeClock } from '../utils/grading';
 
 interface HomeDashboardProps {
   history: ExamHistoryRecord[];
+  selectedSet: MisQuestionSet;
+  onChangeSet: (set: MisQuestionSet) => void;
   onBackToHub?: () => void;
-  onStartDueMock: (gradingMode: GradingMode, timeMinutes: number) => void;
-  onStartFullBank: (gradingMode: GradingMode) => void;
+  onStartDueMock: (gradingMode: GradingMode, timeMinutes: number, set: MisQuestionSet) => void;
+  onStartFullBank: (gradingMode: GradingMode, set: MisQuestionSet) => void;
   onStartCustomExam: (options: {
     chapters: number[];
     mcqCount: number;
@@ -34,14 +32,17 @@ interface HomeDashboardProps {
     timeLimitMinutes: number | null;
     gradingMode: GradingMode;
     shuffle: boolean;
+    set: MisQuestionSet;
   }) => void;
   onStartRetryWrong: (wrongIds: number[]) => void;
-  onOpenQuestionBank: () => void;
+  onOpenQuestionBank: (set: MisQuestionSet) => void;
   onClearHistory: () => void;
 }
 
 export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   history,
+  selectedSet,
+  onChangeSet,
   onBackToHub,
   onStartDueMock,
   onStartFullBank,
@@ -69,13 +70,14 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
     });
   };
 
-  const availableMcq = MCQ_QUESTIONS.filter((q) =>
+  const pools = getMisQuestionPools(selectedSet);
+  const availableMcq = pools.mcq.filter((q) =>
     selectedChapters.includes(q.chapter)
   ).length;
-  const availableShort = SHORT_ANSWER_QUESTIONS.filter((q) =>
+  const availableShort = pools.short.filter((q) =>
     selectedChapters.includes(q.chapter)
   ).length;
-  const availableEssay = ESSAY_QUESTIONS.filter((q) =>
+  const availableEssay = pools.essay.filter((q) =>
     selectedChapters.includes(q.chapter)
   ).length;
 
@@ -96,8 +98,11 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       timeLimitMinutes: timeMinutes,
       gradingMode: selectedGradingMode,
       shuffle: shuffleOrder,
+      set: selectedSet,
     });
   };
+
+  const isHard = selectedSet === 'hard';
 
   return (
     <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -133,46 +138,85 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
         {/* Clean Unboxed Metadata Strip */}
         <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#475569] dark:text-[#94A3B8] tabular-nums">
           <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
-            140 câu hỏi đầy đủ
+            2 bộ đề · 280 câu hỏi đầy đủ
           </span>
           <span aria-hidden="true">·</span>
-          <span>100 câu trắc nghiệm (Chương 1–7)</span>
+          <span>Bộ đề chuẩn (140 câu)</span>
           <span aria-hidden="true">·</span>
-          <span>30 câu điền khuyết</span>
-          <span aria-hidden="true">·</span>
-          <span>10 câu tự luận có rubric</span>
+          <span className="font-semibold text-[#C2410C] dark:text-[#FB923C]">
+            Bộ đề khó (140 câu · Bộ 2)
+          </span>
         </div>
 
-        {/* Grading Mode Switcher */}
-        <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
-          <span className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
-            Chế độ chấm đáp án:
-          </span>
-          <div className="inline-flex items-center gap-1 p-1 bg-[#E2E8F0]/70 dark:bg-[#1E293B] rounded-lg self-start">
-            <button
-              type="button"
-              onClick={() => setSelectedGradingMode('submit')}
-              className={`px-3.5 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
-                selectedGradingMode === 'submit'
-                  ? 'bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] shadow-xs'
-                  : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
-              }`}
-            >
-              Thi thử (Nộp bài mới chấm)
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedGradingMode('instant')}
-              className={`px-3.5 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
-                selectedGradingMode === 'instant'
-                  ? 'bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] shadow-xs'
-                  : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
-              }`}
-            >
-              Ôn tập (Check đáp án từng câu)
-            </button>
+        {/* Question Set Selector + Grading Mode Switcher */}
+        <div className="mt-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+            <span className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+              Chọn bộ đề:
+            </span>
+            <div className="inline-flex items-center gap-1 p-1 bg-[#E2E8F0]/70 dark:bg-[#1E293B] rounded-lg self-start">
+              <button
+                type="button"
+                onClick={() => onChangeSet('standard')}
+                className={`px-3.5 py-2 text-sm font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                  !isHard
+                    ? 'bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] shadow-xs'
+                    : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                }`}
+              >
+                Bộ đề chuẩn (140 câu)
+              </button>
+              <button
+                type="button"
+                onClick={() => onChangeSet('hard')}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                  isHard
+                    ? 'bg-[#C2410C] dark:bg-[#EA580C] text-white shadow-xs'
+                    : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                }`}
+              >
+                <Flame className="w-4 h-4" />
+                Bộ đề khó (140 câu)
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+            <span className="text-sm font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
+              Chế độ chấm:
+            </span>
+            <div className="inline-flex items-center gap-1 p-1 bg-[#E2E8F0]/70 dark:bg-[#1E293B] rounded-lg self-start">
+              <button
+                type="button"
+                onClick={() => setSelectedGradingMode('submit')}
+                className={`px-3.5 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                  selectedGradingMode === 'submit'
+                    ? 'bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] shadow-xs'
+                    : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                }`}
+              >
+                Thi thử (Nộp mới chấm)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedGradingMode('instant')}
+                className={`px-3.5 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer ${
+                  selectedGradingMode === 'instant'
+                    ? 'bg-white dark:bg-[#0F172A] text-[#0F172A] dark:text-[#F8FAFC] shadow-xs'
+                    : 'text-[#475569] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+                }`}
+              >
+                Ôn tập (Check từng câu)
+              </button>
+            </div>
           </div>
         </div>
+
+        {isHard && (
+          <p className="mt-4 text-xs sm:text-sm text-[#9A3412] dark:text-[#FDBA74] bg-[#FEF3C7]/60 dark:bg-[#78350F]/25 border border-[#F59E0B]/40 dark:border-[#F59E0B]/30 rounded px-4 py-2.5">
+            <strong>Đang chọn Bộ đề khó (Bộ 2 – Mức độ khó):</strong> Đáp án nhiễu sát nghĩa, nhiều câu tình huống thực tế, câu &ldquo;KHÔNG phải&rdquo; và câu tổ hợp phát biểu. Nên đọc kỹ từng từ khóa trước khi chọn.
+          </p>
+        )}
       </section>
 
       {/* Primary Quick-Start Exam Modes */}
@@ -182,13 +226,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           <div className="bg-[#E7F3F5] dark:bg-[#122631] border border-[#B6D4DA] dark:border-[#244A5C] rounded p-6 flex flex-col justify-between">
             <div>
               <div className="text-xs font-semibold text-[#0B4275] dark:text-[#38BDF8] mb-1.5">
-                Đề xuất · Đúng cấu trúc DUE E-Study
+                {isHard
+                  ? 'Bộ đề khó · Đúng cấu trúc DUE E-Study'
+                  : 'Đề xuất · Đúng cấu trúc DUE E-Study'}
               </div>
               <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-                Thi thử chuẩn 14 câu
+                {isHard ? 'Thi thử 14 câu — Bộ đề khó' : 'Thi thử chuẩn 14 câu'}
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-[#334155] dark:text-[#CBD5E1]">
-                Bốc ngẫu nhiên theo đúng ma trận đề thi trên DUE E-Study: 10 trắc nghiệm (1.0đ) + 3 điền khuyết (2.0đ) + 1 tự luận (4.0đ).
+                Bốc ngẫu nhiên từ {isHard ? 'Bộ đề khó (Bộ 2)' : 'Bộ đề chuẩn (Bộ 1)'} theo đúng ma trận DUE: 10 trắc nghiệm (1.0đ) + 3 điền khuyết (2.0đ) + 1 tự luận (4.0đ).
               </p>
               <div className="mt-4 text-xs text-[#475569] dark:text-[#94A3B8] space-y-1 tabular-nums">
                 <div>Tổng điểm gốc: 20.0 điểm (quy đổi thang 10)</div>
@@ -198,11 +244,15 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
 
             <button
               type="button"
-              onClick={() => onStartDueMock(selectedGradingMode, 15)}
-              className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
+              onClick={() => onStartDueMock(selectedGradingMode, 15, selectedSet)}
+              className={`mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded transition-colors cursor-pointer ${
+                isHard
+                  ? 'bg-[#C2410C] hover:bg-[#9A3412] dark:bg-[#EA580C] dark:hover:bg-[#C2410C]'
+                  : 'bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C]'
+              }`}
             >
               <Play className="w-4 h-4" />
-              Bắt đầu đề thi thử
+              {isHard ? 'Thi thử Bộ đề khó ngay' : 'Bắt đầu đề thi thử'}
             </button>
           </div>
 
@@ -210,13 +260,14 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           <div className="bg-white dark:bg-[#151F32] border border-[#D6DCE2] dark:border-[#2B3B54] rounded p-6 flex flex-col justify-between">
             <div>
               <div className="text-xs font-semibold text-[#C2410C] dark:text-[#FB923C] mb-1.5">
-                Ôn luyện toàn diện · Phần I – III
+                {isHard ? 'Bộ 2 (Mức độ khó) · Phần I – III' : 'Ôn luyện toàn diện · Phần I – III'}
               </div>
               <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-                Trọn bộ 140 câu PDF
+                {isHard ? 'Trọn bộ 140 câu — Bộ khó' : 'Trọn bộ 140 câu PDF'}
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-[#475569] dark:text-[#CBD5E1]">
-                Làm tuần tự toàn bộ 100 câu trắc nghiệm, 30 câu tự luận ngắn và 10 câu tự luận theo đúng thứ tự Chương 1–7 trong đề cương.
+                Làm tuần tự toàn bộ 100 câu trắc nghiệm, 30 câu tự luận ngắn và 10 câu tự luận của{' '}
+                {isHard ? 'Bộ đề khó (Bộ 2)' : 'Bộ đề chuẩn (Bộ 1)'} theo thứ tự Chương 1–7.
               </p>
               <div className="mt-4 text-xs text-[#64748B] dark:text-[#94A3B8] space-y-1 tabular-nums">
                 <div>Không giới hạn thời gian làm bài</div>
@@ -226,11 +277,11 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
 
             <button
               type="button"
-              onClick={() => onStartFullBank(selectedGradingMode)}
+              onClick={() => onStartFullBank(selectedGradingMode, selectedSet)}
               className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-[#0B4275] dark:text-[#38BDF8] bg-[#F8FAFC] dark:bg-[#1E293B] hover:bg-[#EEF2F6] dark:hover:bg-[#273549] border border-[#0B4275]/30 dark:border-[#38BDF8]/30 rounded transition-colors cursor-pointer"
             >
               <FileText className="w-4 h-4" />
-              Làm trọn bộ 140 câu
+              {isHard ? 'Làm trọn bộ 140 câu (Bộ khó)' : 'Làm trọn bộ 140 câu'}
             </button>
           </div>
 
@@ -241,24 +292,24 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                 Tra cứu nhanh · Học thuộc đáp án
               </div>
               <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-                Ngân hàng đề & Đáp án
+                Ngân hàng đề &amp; Đáp án
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-[#475569] dark:text-[#CBD5E1]">
-                Xem và tìm kiếm nhanh trong cả 140 câu hỏi và đáp án chuẩn theo từ khóa hoặc từng chương. Hỗ trợ ẩn/hiện đáp án để tự dò bài.
+                Tra cứu toàn bộ 140 câu của {isHard ? 'Bộ đề khó kèm 11 cặp dễ nhầm' : 'Bộ đề chuẩn'} theo từ khóa hoặc từng chương. Hỗ trợ ẩn/hiện đáp án để tự dò bài.
               </p>
               <div className="mt-4 text-xs text-[#64748B] dark:text-[#94A3B8] space-y-1">
                 <div>Bao gồm đáp án gợi ý chi tiết Câu 131–140</div>
-                <div>Lọc nhanh theo Chương 1–7 hoặc dạng câu hỏi</div>
+                <div>Chuyển nhanh giữa Bộ chuẩn &amp; Bộ khó ngay trong ngân hàng</div>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={onOpenQuestionBank}
+              onClick={() => onOpenQuestionBank(selectedSet)}
               className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-[#334155] dark:text-[#E2E8F0] bg-[#F8FAFC] dark:bg-[#1E293B] hover:bg-[#EEF2F6] dark:hover:bg-[#273549] border border-[#CBD5E1] dark:border-[#334155] rounded transition-colors cursor-pointer"
             >
               <BookOpen className="w-4 h-4" />
-              Mở ngân hàng đáp án
+              {isHard ? 'Mở ngân hàng Bộ đề khó' : 'Mở ngân hàng đáp án'}
             </button>
           </div>
         </div>
@@ -274,7 +325,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           <div className="flex items-center gap-2 mb-1">
             <SlidersHorizontal className="w-4 h-4 text-[#C2410C] dark:text-[#FB923C]" />
             <h2 className="text-lg font-bold text-[#0F172A] dark:text-[#F8FAFC]">
-              Tùy chỉnh đề luyện tập theo Chương & Dạng bài
+              Tùy chỉnh đề luyện tập ({isHard ? 'Bộ đề khó' : 'Bộ đề chuẩn'})
             </h2>
           </div>
           <p className="text-sm text-[#475569] dark:text-[#94A3B8] mb-5">

@@ -443,7 +443,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <span className="text-xl font-bold tabular-nums">{displayNumber}</span>
           </div>
           <div className="text-[11px] text-[#64748B] dark:text-[#94A3B8] md:mt-0.5">
-            Chương {question.chapter} · Câu gốc {question.id}
+            Chương {question.chapter} ·{' '}
+            {question.id >= 2001 && question.id <= 2140
+              ? `Bộ khó · Câu ${question.id - 2000}`
+              : question.id >= 1001 && question.id <= 1300
+                ? `Đề ${String(Math.floor((question.id - 1001) / 30) + 1).padStart(2, '0')} · Câu ${((question.id - 1001) % 30) + 1}`
+                : `Câu gốc ${question.id}`}
           </div>
         </div>
 

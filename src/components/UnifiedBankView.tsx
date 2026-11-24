@@ -1,14 +1,16 @@
 import React from 'react';
 import { Briefcase, Database, Sigma } from 'lucide-react';
 import { SubjectId } from '../types/exam';
+import { MisQuestionSet } from '../data';
 import { QuestionBankView } from './QuestionBankView';
 import { StaBankView } from './StaBankView';
 import { NmkdBankView } from './NmkdBankView';
 
 interface UnifiedBankViewProps {
   activeSubject: SubjectId;
+  initialMisSet?: MisQuestionSet;
   onSelectSubject: (subject: SubjectId) => void;
-  onStartMisChapterPractice: (chapter: number) => void;
+  onStartMisChapterPractice: (chapter: number, set: MisQuestionSet) => void;
   onBackToStaHome: () => void;
   onStartStaExam: (examNumber: number) => void;
   onBackToNmkdHome: () => void;
@@ -27,7 +29,7 @@ const BANK_SUBJECTS: {
     id: 'mis2002',
     code: 'MIS2002',
     name: 'Hệ thống thông tin quản lý',
-    meta: '140 câu · TN, Điền khuyết, Tự luận',
+    meta: '280 câu · Bộ chuẩn & Bộ đề khó',
     icon: Database,
   },
   {
@@ -48,6 +50,7 @@ const BANK_SUBJECTS: {
 
 export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
   activeSubject,
+  initialMisSet = 'standard',
   onSelectSubject,
   onStartMisChapterPractice,
   onBackToStaHome,
@@ -122,7 +125,11 @@ export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
 
       {/* Active Subject's Question Bank */}
       {activeSubject === 'mis2002' && (
-        <QuestionBankView onStartChapterPractice={onStartMisChapterPractice} />
+        <QuestionBankView
+          key={initialMisSet}
+          initialSet={initialMisSet}
+          onStartChapterPractice={onStartMisChapterPractice}
+        />
       )}
 
       {activeSubject === 'sta2005' && (

@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  ALL_QUESTIONS,
   buildRandomDueMockExamIds,
-  ESSAY_QUESTIONS,
-  MCQ_QUESTIONS,
-  SHORT_ANSWER_QUESTIONS,
+  getMisQuestionPools,
+  MisQuestionSet,
   shuffleArray,
 } from './data';
 import { STA2005_EXAMS, STA_EXAM_BY_NUMBER } from './data/sta2005Exams';
@@ -66,7 +64,9 @@ export default function App() {
   const [activeSubject, setActiveSubject] = useState<SubjectId>('mis2002');
 
   // MIS2002 active exam state
+  const [selectedMisSet, setSelectedMisSet] = useState<MisQuestionSet>('standard');
   const [activeMisExam, setActiveMisExam] = useState<ExamConfig | null>(null);
+  const [activeMisExamSet, setActiveMisExamSet] = useState<MisQuestionSet>('standard');
   const [isCurrentExamSubmitted, setIsCurrentExamSubmitted] = useState(false);
 
   // STA2005 active exam state
@@ -112,11 +112,18 @@ export default function App() {
   /* ==================== MIS2002 Launchers ==================== */
 
   const startDueMockExam = useCallback(
-    (gradingMode: GradingMode = 'submit', timeMinutes = 15) => {
-      const ids = buildRandomDueMockExamIds(10, 3, 1);
+    (
+      gradingMode: GradingMode = 'submit',
+      timeMinutes = 15,
+      set: MisQuestionSet = 'standard'
+    ) => {
+      const ids = buildRandomDueMockExamIds(10, 3, 1, undefined, set);
+      const setLabel = set === 'hard' ? ' · Bộ đề khó' : '';
+      setSelectedMisSet(set);
+      setActiveMisExamSet(set);
       setActiveMisExam({
-        id: `due-mock-${Date.now()}`,
-        title: 'Thi thử chuẩn DUE E-Study (14 câu)',
+        id: `due-mock-${set}-${Date.now()}`,
+        title: `Thi thử chuẩn DUE E-Study (14 câu)${setLabel}`,
         subtitle:
           gradingMode === 'instant'
             ? '10 trắc nghiệm · 3 tự luận ngắn · 1 tự luận · Chấm đáp án từng câu'
@@ -135,25 +142,32 @@ export default function App() {
     []
   );
 
-  const startFullBankExam = useCallback((gradingMode: GradingMode = 'instant') => {
-    setActiveMisExam({
-      id: `full-140-${Date.now()}`,
-      title: 'Trọn bộ đề ôn tập MIS2002 (140 câu)',
-      subtitle:
-        gradingMode === 'instant'
-          ? '100 trắc nghiệm · 30 điền khuyết · 10 tự luận · Kiểm tra từng câu'
-          : '100 trắc nghiệm · 30 điền khuyết · 10 tự luận · Nộp bài chấm điểm',
-      questionIds: ALL_QUESTIONS.map((q) => q.id),
-      timeLimitSeconds: null,
-      gradingMode,
-      questionsPerPage: 5,
-    });
-    setIsCurrentExamSubmitted(false);
-    setFinishTriggerCount(0);
-    setActiveSubject('mis2002');
-    setActiveView('mis-exam');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  const startFullBankExam = useCallback(
+    (gradingMode: GradingMode = 'instant', set: MisQuestionSet = 'standard') => {
+      const pools = getMisQuestionPools(set);
+      const setLabel = set === 'hard' ? ' — Bộ đề khó' : '';
+      setSelectedMisSet(set);
+      setActiveMisExamSet(set);
+      setActiveMisExam({
+        id: `full-140-${set}-${Date.now()}`,
+        title: `Trọn bộ đề ôn tập MIS2002 (140 câu)${setLabel}`,
+        subtitle:
+          gradingMode === 'instant'
+            ? '100 trắc nghiệm · 30 điền khuyết · 10 tự luận · Kiểm tra từng câu'
+            : '100 trắc nghiệm · 30 điền khuyết · 10 tự luận · Nộp bài chấm điểm',
+        questionIds: pools.all.map((q) => q.id),
+        timeLimitSeconds: null,
+        gradingMode,
+        questionsPerPage: 5,
+      });
+      setIsCurrentExamSubmitted(false);
+      setFinishTriggerCount(0);
+      setActiveSubject('mis2002');
+      setActiveView('mis-exam');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
 
   const startCustomExam = useCallback(
     (options: {
@@ -164,11 +178,13 @@ export default function App() {
       timeLimitMinutes: number | null;
       gradingMode: GradingMode;
       shuffle: boolean;
+      set: MisQuestionSet;
     }) => {
+      const pools = getMisQuestionPools(options.set);
       const filterCh = (ch: number) => options.chapters.includes(ch);
-      const mcqPool = MCQ_QUESTIONS.filter((q) => filterCh(q.chapter));
-      const shortPool = SHORT_ANSWER_QUESTIONS.filter((q) => filterCh(q.chapter));
-      const essayPool = ESSAY_QUESTIONS.filter((q) => filterCh(q.chapter));
+      const mcqPool = pools.mcq.filter((q) => filterCh(q.chapter));
+      const shortPool = pools.short.filter((q) => filterCh(q.chapter));
+      const essayPool = pools.essay.filter((q) => filterCh(q.chapter));
 
       const chosenMcq = (options.shuffle ? shuffleArray(mcqPool) : mcqPool).slice(
         0,
@@ -190,10 +206,13 @@ export default function App() {
         options.chapters.length === 7
           ? 'Tất cả Chương 1–7'
           : `Chương ${options.chapters.join(', ')}`;
+      const setLabel = options.set === 'hard' ? ' · Bộ đề khó' : '';
 
+      setSelectedMisSet(options.set);
+      setActiveMisExamSet(options.set);
       setActiveMisExam({
-        id: `custom-${Date.now()}`,
-        title: `Đề tự chọn · ${chapterText} (${ids.length} câu)`,
+        id: `custom-${options.set}-${Date.now()}`,
+        title: `Đề tự chọn · ${chapterText} (${ids.length} câu)${setLabel}`,
         subtitle: `${chosenMcq.length} trắc nghiệm · ${chosenShort.length} điền khuyết · ${chosenEssay.length} tự luận`,
         questionIds: ids,
         timeLimitSeconds:
@@ -210,25 +229,33 @@ export default function App() {
     []
   );
 
-  const startChapterPractice = useCallback((chapter: number) => {
-    const ids = ALL_QUESTIONS.filter((q) => q.chapter === chapter).map((q) => q.id);
-    if (ids.length === 0) return;
+  const startChapterPractice = useCallback(
+    (chapter: number, set: MisQuestionSet = 'standard') => {
+      const pools = getMisQuestionPools(set);
+      const ids = pools.all.filter((q) => q.chapter === chapter).map((q) => q.id);
+      if (ids.length === 0) return;
 
-    setActiveMisExam({
-      id: `chapter-${chapter}-${Date.now()}`,
-      title: `Ôn tập Chương ${chapter} (${ids.length} câu)`,
-      subtitle: 'Đầy đủ trắc nghiệm, tự luận ngắn và tự luận thuộc Chương ' + chapter,
-      questionIds: ids,
-      timeLimitSeconds: null,
-      gradingMode: 'instant',
-      questionsPerPage: 3,
-    });
-    setIsCurrentExamSubmitted(false);
-    setFinishTriggerCount(0);
-    setActiveSubject('mis2002');
-    setActiveView('mis-exam');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+      const setLabel = set === 'hard' ? ' · Bộ đề khó' : '';
+      setSelectedMisSet(set);
+      setActiveMisExamSet(set);
+      setActiveMisExam({
+        id: `chapter-${set}-${chapter}-${Date.now()}`,
+        title: `Ôn tập Chương ${chapter} (${ids.length} câu)${setLabel}`,
+        subtitle:
+          'Đầy đủ trắc nghiệm, tự luận ngắn và tự luận thuộc Chương ' + chapter,
+        questionIds: ids,
+        timeLimitSeconds: null,
+        gradingMode: 'instant',
+        questionsPerPage: 3,
+      });
+      setIsCurrentExamSubmitted(false);
+      setFinishTriggerCount(0);
+      setActiveSubject('mis2002');
+      setActiveView('mis-exam');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
 
   const startRetryMisWrong = useCallback((wrongIds: number[]) => {
     if (wrongIds.length === 0) return;
@@ -516,7 +543,7 @@ export default function App() {
           } else if (activeSubject === 'nmkd2026') {
             startNmkdRandomMock('submit', 30);
           } else {
-            startDueMockExam('submit', 15);
+            startDueMockExam('submit', 15, selectedMisSet);
           }
         }}
         onRequestFinishExam={() => setFinishTriggerCount((c) => c + 1)}
@@ -531,7 +558,8 @@ export default function App() {
               else if (subject === 'nmkd2026') navigateToView('nmkd-home');
               else navigateToView('mis-home');
             }}
-            onQuickStartMisMock={() => startDueMockExam('submit', 15)}
+            onQuickStartMisMock={() => startDueMockExam('submit', 15, 'standard')}
+            onQuickStartMisHardMock={() => startDueMockExam('submit', 15, 'hard')}
             onQuickStartStaRandom={startRandomStaExam}
             onQuickStartNmkdMock={() => startNmkdRandomMock('submit', 30)}
             onStartRetryMisWrong={startRetryMisWrong}
@@ -544,12 +572,17 @@ export default function App() {
         {activeView === 'mis-home' && (
           <HomeDashboard
             history={history}
+            selectedSet={selectedMisSet}
+            onChangeSet={setSelectedMisSet}
             onBackToHub={() => navigateToView('hub')}
             onStartDueMock={startDueMockExam}
             onStartFullBank={startFullBankExam}
             onStartCustomExam={startCustomExam}
             onStartRetryWrong={startRetryMisWrong}
-            onOpenQuestionBank={() => navigateToView('mis-bank')}
+            onOpenQuestionBank={(set) => {
+              setSelectedMisSet(set);
+              navigateToView('mis-bank');
+            }}
             onClearHistory={handleClearHistory}
           />
         )}
@@ -558,9 +591,16 @@ export default function App() {
           <ExamWorkspace
             config={activeMisExam}
             finishTriggerCount={finishTriggerCount}
+            courseHeading={
+              activeMisExamSet === 'hard'
+                ? '[271] Hệ thống thông tin quản lý [MIS2002] — Bộ đề khó'
+                : '[271] Hệ thống thông tin quản lý [MIS2002_51K33]'
+            }
             onExitToHome={() => navigateToView('mis-home')}
             onStartRetryWrong={startRetryMisWrong}
-            onStartNewMock={() => startDueMockExam(activeMisExam.gradingMode, 15)}
+            onStartNewMock={() =>
+              startDueMockExam(activeMisExam.gradingMode, 15, activeMisExamSet)
+            }
             onExamSubmitted={handleMisExamSubmitted}
           />
         )}
@@ -633,6 +673,7 @@ export default function App() {
                   ? 'nmkd2026'
                   : 'mis2002'
             }
+            initialMisSet={selectedMisSet}
             onSelectSubject={(subj) => {
               if (subj === 'sta2005') navigateToView('sta-bank');
               else if (subj === 'nmkd2026') navigateToView('nmkd-bank');
@@ -658,10 +699,10 @@ export default function App() {
         <div className="bg-[#0B4275] dark:bg-[#0F1B2E] text-white/90">
           <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span>
-              DUE E-Study · MIS2002 · STA2005 · MGT2002 (Nhập môn kinh doanh)
+              DUE E-Study · MIS2002 (Bộ chuẩn &amp; Bộ đề khó) · STA2005 · MGT2002
             </span>
             <span className="text-white/90 font-medium">
-              Thực hiện bởi <strong className="text-white">Anh Hoàng 51K33</strong> · 140 câu MIS2002 · 18 đề STA2005 · 10 đề NMKD 2026
+              Thực hiện bởi <strong className="text-white">Anh Hoàng 51K33</strong> · 280 câu MIS2002 · 18 đề STA2005 · 10 đề NMKD 2026
             </span>
           </div>
         </div>

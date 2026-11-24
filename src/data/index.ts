@@ -2,8 +2,26 @@ import { ChapterInfo, ExamQuestion } from '../types/exam';
 import { MCQ_QUESTIONS } from './mcqQuestions';
 import { SHORT_ANSWER_QUESTIONS } from './shortEssayQuestions';
 import { ESSAY_QUESTIONS } from './essayQuestions';
+import {
+  HARD_MCQ_QUESTIONS,
+  MIS_HARD_CONFUSING_PAIRS,
+} from './misHardMcqQuestions';
+import {
+  HARD_ESSAY_QUESTIONS,
+  HARD_SHORT_ANSWER_QUESTIONS,
+} from './misHardShortAndEssayQuestions';
 
-export { MCQ_QUESTIONS, SHORT_ANSWER_QUESTIONS, ESSAY_QUESTIONS };
+export type MisQuestionSet = 'standard' | 'hard';
+
+export {
+  MCQ_QUESTIONS,
+  SHORT_ANSWER_QUESTIONS,
+  ESSAY_QUESTIONS,
+  HARD_MCQ_QUESTIONS,
+  HARD_SHORT_ANSWER_QUESTIONS,
+  HARD_ESSAY_QUESTIONS,
+  MIS_HARD_CONFUSING_PAIRS,
+};
 
 export const ALL_QUESTIONS: ExamQuestion[] = [
   ...MCQ_QUESTIONS,
@@ -11,9 +29,36 @@ export const ALL_QUESTIONS: ExamQuestion[] = [
   ...ESSAY_QUESTIONS,
 ];
 
+export const HARD_ALL_QUESTIONS: ExamQuestion[] = [
+  ...HARD_MCQ_QUESTIONS,
+  ...HARD_SHORT_ANSWER_QUESTIONS,
+  ...HARD_ESSAY_QUESTIONS,
+];
+
+/**
+ * Combined lookup map covering BOTH Bộ 1 (1..140) and Bộ 2 – Bộ đề khó (2001..2140)
+ * so exam workspaces and history retry-wrong actions resolve seamlessly.
+ */
 export const QUESTION_BY_ID: Record<number, ExamQuestion> = Object.fromEntries(
-  ALL_QUESTIONS.map((q) => [q.id, q])
+  [...ALL_QUESTIONS, ...HARD_ALL_QUESTIONS].map((q) => [q.id, q])
 );
+
+export function getMisQuestionPools(set: MisQuestionSet) {
+  if (set === 'hard') {
+    return {
+      mcq: HARD_MCQ_QUESTIONS,
+      short: HARD_SHORT_ANSWER_QUESTIONS,
+      essay: HARD_ESSAY_QUESTIONS,
+      all: HARD_ALL_QUESTIONS,
+    };
+  }
+  return {
+    mcq: MCQ_QUESTIONS,
+    short: SHORT_ANSWER_QUESTIONS,
+    essay: ESSAY_QUESTIONS,
+    all: ALL_QUESTIONS,
+  };
+}
 
 export const CHAPTERS: ChapterInfo[] = [
   { chapter: 1, title: 'Chương 1 – Tổng quan HTTT quản lý', shortTitle: 'Chương 1: Tổng quan HTTT' },
@@ -38,14 +83,16 @@ export function buildRandomDueMockExamIds(
   mcqCount = 10,
   shortCount = 3,
   essayCount = 1,
-  chapters?: number[]
+  chapters?: number[],
+  set: MisQuestionSet = 'standard'
 ): number[] {
+  const pools = getMisQuestionPools(set);
   const chapterFilter = (q: ExamQuestion) =>
     !chapters || chapters.length === 0 || chapters.includes(q.chapter);
 
-  const mcqs = shuffleArray(MCQ_QUESTIONS.filter(chapterFilter)).slice(0, mcqCount);
-  const shorts = shuffleArray(SHORT_ANSWER_QUESTIONS.filter(chapterFilter)).slice(0, shortCount);
-  const essays = shuffleArray(ESSAY_QUESTIONS.filter(chapterFilter)).slice(0, essayCount);
+  const mcqs = shuffleArray(pools.mcq.filter(chapterFilter)).slice(0, mcqCount);
+  const shorts = shuffleArray(pools.short.filter(chapterFilter)).slice(0, shortCount);
+  const essays = shuffleArray(pools.essay.filter(chapterFilter)).slice(0, essayCount);
 
   return [...mcqs, ...shorts, ...essays].map((q) => q.id);
 }
