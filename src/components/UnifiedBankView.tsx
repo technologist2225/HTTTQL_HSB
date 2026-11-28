@@ -1,10 +1,11 @@
 import React from 'react';
-import { Briefcase, Database, Sigma } from 'lucide-react';
+import { Briefcase, Database, MessageSquareText, Sigma } from 'lucide-react';
 import { SubjectId } from '../types/exam';
 import { MisQuestionSet } from '../data';
 import { QuestionBankView } from './QuestionBankView';
 import { StaBankView } from './StaBankView';
 import { NmkdBankView } from './NmkdBankView';
+import { GtkdBankView } from './GtkdBankView';
 
 interface UnifiedBankViewProps {
   activeSubject: SubjectId;
@@ -16,6 +17,8 @@ interface UnifiedBankViewProps {
   onBackToNmkdHome: () => void;
   onStartNmkdOfficialExam: (examNumber: number) => void;
   onStartNmkdChapterPractice: (chapter: number) => void;
+  onBackToGtkdHome: () => void;
+  onStartGtkdGroupPractice: (group: number) => void;
 }
 
 const BANK_SUBJECTS: {
@@ -46,6 +49,13 @@ const BANK_SUBJECTS: {
     meta: '10 mã đề · 300 câu A–E',
     icon: Briefcase,
   },
+  {
+    id: 'gtkd',
+    code: 'GTKD',
+    name: 'Giao tiếp kinh doanh',
+    meta: '245 câu · 4 nhóm & Ghi chú ⚠',
+    icon: MessageSquareText,
+  },
 ];
 
 export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
@@ -58,19 +68,21 @@ export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
   onBackToNmkdHome,
   onStartNmkdOfficialExam,
   onStartNmkdChapterPractice,
+  onBackToGtkdHome,
+  onStartGtkdGroupPractice,
 }) => {
   return (
     <div>
-      {/* 3-Subject Bank Switcher Bar */}
+      {/* 4-Subject Bank Switcher Bar */}
       <div className="bg-white dark:bg-[#11192B] border-b border-[#E2E8F0] dark:border-[#243249]">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <span className="text-xs font-semibold uppercase tracking-wide text-[#64748B] dark:text-[#94A3B8]">
-              Chọn môn học trong Ngân hàng đề &amp; Đáp án (3 học phần)
+              Chọn môn học trong Ngân hàng đề &amp; Đáp án (4 học phần)
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {BANK_SUBJECTS.map((subj) => {
               const Icon = subj.icon;
               const isActive = activeSubject === subj.id;
@@ -79,7 +91,7 @@ export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
                   key={subj.id}
                   type="button"
                   onClick={() => onSelectSubject(subj.id)}
-                  className={`text-left px-4 py-3 rounded border transition-colors cursor-pointer flex items-start gap-3 ${
+                  className={`text-left px-3.5 py-3 rounded border transition-colors cursor-pointer flex items-start gap-2.5 ${
                     isActive
                       ? 'bg-[#E7F3F5] dark:bg-[#122631] border-[#0B4275] dark:border-[#38BDF8]'
                       : 'bg-[#F8FAFC] dark:bg-[#151F32] border-[#D6DCE2] dark:border-[#2B3B54] hover:border-[#0B4275]/50 dark:hover:border-[#38BDF8]/50'
@@ -93,7 +105,7 @@ export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
                     }`}
                   />
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span
                         className={`text-xs font-bold font-mono ${
                           isActive
@@ -144,6 +156,13 @@ export const UnifiedBankView: React.FC<UnifiedBankViewProps> = ({
           onBackToNmkdHome={onBackToNmkdHome}
           onStartOfficialExam={onStartNmkdOfficialExam}
           onStartChapterPractice={onStartNmkdChapterPractice}
+        />
+      )}
+
+      {activeSubject === 'gtkd' && (
+        <GtkdBankView
+          onBackToGtkdHome={onBackToGtkdHome}
+          onStartGroupPractice={onStartGtkdGroupPractice}
         />
       )}
     </div>

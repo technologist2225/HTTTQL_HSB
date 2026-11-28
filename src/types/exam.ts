@@ -1,8 +1,10 @@
-export type SubjectId = 'mis2002' | 'sta2005' | 'nmkd2026';
+export type SubjectId = 'mis2002' | 'sta2005' | 'nmkd2026' | 'gtkd';
 
 export type QuestionType = 'mcq' | 'short' | 'essay';
 
 export type McqOptionKey = 'a' | 'b' | 'c' | 'd' | 'e';
+
+export type AnswerFlag = 'inferred' | 'conflict';
 
 export interface McqOption {
   key: McqOptionKey;
@@ -17,6 +19,10 @@ export interface McqQuestion {
   options: McqOption[];
   correctOption: McqOptionKey;
   points: number;
+  /** Optional status flag for questions whose source key was inferred (*) or conflicted (⚠) */
+  answerFlag?: AnswerFlag;
+  /** Optional explanatory note shown with answer feedback */
+  note?: string;
 }
 
 export interface ShortBlankAnswer {
@@ -38,6 +44,8 @@ export interface ShortAnswerQuestion {
   blanks: ShortBlankAnswer[];
   officialAnswer: string;
   points: number;
+  answerFlag?: AnswerFlag;
+  note?: string;
 }
 
 export interface EssayRubricItem {
@@ -112,6 +120,8 @@ export interface ExamHistoryRecord {
   staExamNumber?: number;
   /** Optional NMKD 2026 exam code (1..10) for direct retake */
   nmkdExamNumber?: number;
+  /** Optional GTKD segment exam number (1..5) for direct retake */
+  gtkdSegmentNumber?: number;
 }
 
 export interface ChapterInfo {
@@ -155,6 +165,24 @@ export interface NmkdExamSet {
   code: string;
   examCode: string;
   title: string;
+  questionIds: number[];
+}
+
+/* ==================== GTKD (Giao tiếp kinh doanh) Types ==================== */
+
+export interface GtkdGroupInfo {
+  group: number;
+  title: string;
+  shortTitle: string;
+  sourceLabel: string;
+  rangeLabel: string;
+}
+
+export interface GtkdSegmentSet {
+  segmentNumber: number;
+  code: string;
+  title: string;
+  rangeLabel: string;
   questionIds: number[];
 }
 

@@ -13,6 +13,12 @@ import {
   NMKD_QUESTION_BY_ID,
 } from './data/nmkdData';
 import {
+  buildRandomGtkdMockIds,
+  GTKD_ALL_QUESTIONS,
+  GTKD_QUESTION_BY_ID,
+  GTKD_SEGMENT_BY_NUMBER,
+} from './data/gtkdData';
+import {
   ExamConfig,
   ExamHistoryRecord,
   GradingMode,
@@ -30,6 +36,7 @@ import { ExamWorkspace } from './components/ExamWorkspace';
 import { StaDashboard } from './components/StaDashboard';
 import { StaExamWorkspace } from './components/StaExamWorkspace';
 import { NmkdDashboard } from './components/NmkdDashboard';
+import { GtkdDashboard } from './components/GtkdDashboard';
 import { UnifiedBankView } from './components/UnifiedBankView';
 
 const THEME_STORAGE_KEY = 'due_mis2002_theme';
@@ -59,6 +66,11 @@ interface ActiveNmkdExamState {
   examNumber?: number;
 }
 
+interface ActiveGtkdExamState {
+  config: ExamConfig;
+  segmentNumber?: number;
+}
+
 export default function App() {
   const [activeView, setActiveView] = useState<AppView>('hub');
   const [activeSubject, setActiveSubject] = useState<SubjectId>('mis2002');
@@ -74,6 +86,9 @@ export default function App() {
 
   // NMKD 2026 (MGT2002) active exam state
   const [activeNmkdExam, setActiveNmkdExam] = useState<ActiveNmkdExamState | null>(null);
+
+  // GTKD (Giao tiếp kinh doanh) active exam state
+  const [activeGtkdExam, setActiveGtkdExam] = useState<ActiveGtkdExamState | null>(null);
 
   const [finishTriggerCount, setFinishTriggerCount] = useState(0);
   const [history, setHistory] = useState<ExamHistoryRecord[]>(() => loadExamHistory());
@@ -105,6 +120,8 @@ export default function App() {
       setActiveSubject('sta2005');
     } else if (view === 'nmkd-home' || view === 'nmkd-exam' || view === 'nmkd-bank') {
       setActiveSubject('nmkd2026');
+    } else if (view === 'gtkd-home' || view === 'gtkd-exam' || view === 'gtkd-bank') {
+      setActiveSubject('gtkd');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
@@ -428,6 +445,130 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  /* ==================== GTKD (Giao tiếp kinh doanh) Launchers ==================== */
+
+  const startGtkdRandomMock = useCallback(
+    (gradingMode: GradingMode = 'submit', timeLimitMinutes: number | null = 35) => {
+      const ids = buildRandomGtkdMockIds(10);
+      setActiveGtkdExam({
+        config: {
+          id: `gtkd-mock-${Date.now()}`,
+          title: 'Thi thử trộn đề Giao tiếp kinh doanh (40 câu)',
+          subtitle: 'Ngẫu nhiên 10 câu/nhóm × 4 nhóm · Trắc nghiệm 4 lựa chọn A–D',
+          questionIds: ids,
+          timeLimitSeconds:
+            timeLimitMinutes !== null ? timeLimitMinutes * 60 : null,
+          gradingMode,
+          questionsPerPage: 5,
+        },
+      });
+      setIsCurrentExamSubmitted(false);
+      setFinishTriggerCount(0);
+      setActiveSubject('gtkd');
+      setActiveView('gtkd-exam');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
+
+  const startGtkdSegmentExam = useCallback(
+    (
+      segmentNumber: number,
+      gradingMode: GradingMode = 'submit',
+      timeLimitMinutes: number | null = 35
+    ) => {
+      const seg = GTKD_SEGMENT_BY_NUMBER[segmentNumber];
+      if (!seg) return;
+      setActiveGtkdExam({
+        segmentNumber,
+        config: {
+          id: `gtkd-seg-${seg.code}-${Date.now()}`,
+          title: seg.title,
+          subtitle:
+            gradingMode === 'instant'
+              ? `${seg.rangeLabel} · Check đáp án từng câu kèm ghi chú ⚠`
+              : `${seg.rangeLabel} · Nộp bài chấm điểm tự động`,
+          questionIds: seg.questionIds,
+          timeLimitSeconds:
+            timeLimitMinutes !== null ? timeLimitMinutes * 60 : null,
+          gradingMode,
+          questionsPerPage: 5,
+        },
+      });
+      setIsCurrentExamSubmitted(false);
+      setFinishTriggerCount(0);
+      setActiveSubject('gtkd');
+      setActiveView('gtkd-exam');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
+
+  const startGtkdFull245 = useCallback((gradingMode: GradingMode = 'instant') => {
+    setActiveGtkdExam({
+      config: {
+        id: `gtkd-full-245-${Date.now()}`,
+        title: 'Trọn bộ Giao tiếp kinh doanh (245 câu)',
+        subtitle: 'Toàn bộ Câu 1–245 qua 4 nhóm tài liệu DUE (kèm Câu 56 trả lời ngắn)',
+        questionIds: GTKD_ALL_QUESTIONS.map((q) => q.id),
+        timeLimitSeconds: null,
+        gradingMode,
+        questionsPerPage: 10,
+      },
+    });
+    setIsCurrentExamSubmitted(false);
+    setFinishTriggerCount(0);
+    setActiveSubject('gtkd');
+    setActiveView('gtkd-exam');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const startGtkdGroupPractice = useCallback(
+    (group: number, gradingMode: GradingMode = 'instant') => {
+      const ids = GTKD_ALL_QUESTIONS.filter((q) => q.chapter === group).map(
+        (q) => q.id
+      );
+      if (ids.length === 0) return;
+      setActiveGtkdExam({
+        config: {
+          id: `gtkd-grp-${group}-${Date.now()}`,
+          title: `Ôn tập Nhóm ${group} GTKD (${ids.length} câu)`,
+          subtitle: `Toàn bộ ${ids.length} câu hỏi thuộc Nhóm ${group} trong bộ tài liệu tổng hợp`,
+          questionIds: ids,
+          timeLimitSeconds: null,
+          gradingMode,
+          questionsPerPage: 5,
+        },
+      });
+      setIsCurrentExamSubmitted(false);
+      setFinishTriggerCount(0);
+      setActiveSubject('gtkd');
+      setActiveView('gtkd-exam');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    []
+  );
+
+  const startRetryGtkdWrong = useCallback((wrongIds: number[]) => {
+    if (wrongIds.length === 0) return;
+    setActiveGtkdExam({
+      config: {
+        id: `gtkd-retry-${Date.now()}`,
+        title: `Ôn lại câu sai GTKD (${wrongIds.length} câu)`,
+        subtitle: 'Chế độ kiểm tra đáp án tức thì từng câu',
+        questionIds: wrongIds,
+        timeLimitSeconds: null,
+        gradingMode: 'instant',
+        questionsPerPage: 5,
+      },
+    });
+    setIsCurrentExamSubmitted(false);
+    setFinishTriggerCount(0);
+    setActiveSubject('gtkd');
+    setActiveView('gtkd-exam');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   /* ==================== History Handlers ==================== */
 
   const handleMisExamSubmitted = useCallback(
@@ -504,6 +645,31 @@ export default function App() {
     [activeNmkdExam?.examNumber]
   );
 
+  const handleGtkdExamSubmitted = useCallback(
+    (payload: {
+      title: string;
+      totalQuestions: number;
+      answeredCount: number;
+      earnedPoints: number;
+      maxPoints: number;
+      scoreOutOf10: number;
+      durationSeconds: number;
+      wrongQuestionIds: number[];
+      gradingMode: GradingMode;
+    }) => {
+      setIsCurrentExamSubmitted(true);
+      const record: ExamHistoryRecord = {
+        id: `hist-${Date.now()}`,
+        subjectId: 'gtkd',
+        gtkdSegmentNumber: activeGtkdExam?.segmentNumber,
+        completedAt: new Date().toISOString(),
+        ...payload,
+      };
+      setHistory(saveExamHistoryRecord(record));
+    },
+    [activeGtkdExam?.segmentNumber]
+  );
+
   const handleClearHistory = useCallback(() => {
     clearExamHistory();
     setHistory([]);
@@ -512,7 +678,8 @@ export default function App() {
   const hasActiveUnsubmittedExam =
     ((activeView === 'mis-exam' && Boolean(activeMisExam)) ||
       (activeView === 'sta-exam' && Boolean(activeStaExam)) ||
-      (activeView === 'nmkd-exam' && Boolean(activeNmkdExam))) &&
+      (activeView === 'nmkd-exam' && Boolean(activeNmkdExam)) ||
+      (activeView === 'gtkd-exam' && Boolean(activeGtkdExam))) &&
     !isCurrentExamSubmitted;
 
   const activeStaPaper = activeStaExam
@@ -533,6 +700,8 @@ export default function App() {
             navigateToView('sta-bank');
           } else if (activeSubject === 'nmkd2026') {
             navigateToView('nmkd-bank');
+          } else if (activeSubject === 'gtkd') {
+            navigateToView('gtkd-bank');
           } else {
             navigateToView('mis-bank');
           }
@@ -542,6 +711,8 @@ export default function App() {
             startRandomStaExam();
           } else if (activeSubject === 'nmkd2026') {
             startNmkdRandomMock('submit', 30);
+          } else if (activeSubject === 'gtkd') {
+            startGtkdRandomMock('submit', 35);
           } else {
             startDueMockExam('submit', 15, selectedMisSet);
           }
@@ -556,14 +727,17 @@ export default function App() {
             onOpenSubject={(subject) => {
               if (subject === 'sta2005') navigateToView('sta-home');
               else if (subject === 'nmkd2026') navigateToView('nmkd-home');
+              else if (subject === 'gtkd') navigateToView('gtkd-home');
               else navigateToView('mis-home');
             }}
             onQuickStartMisMock={() => startDueMockExam('submit', 15, 'standard')}
             onQuickStartMisHardMock={() => startDueMockExam('submit', 15, 'hard')}
             onQuickStartStaRandom={startRandomStaExam}
             onQuickStartNmkdMock={() => startNmkdRandomMock('submit', 30)}
+            onQuickStartGtkdMock={() => startGtkdRandomMock('submit', 35)}
             onStartRetryMisWrong={startRetryMisWrong}
             onStartRetryNmkdWrong={startRetryNmkdWrong}
+            onStartRetryGtkdWrong={startRetryGtkdWrong}
             onRetakeStaExam={(examNum) => startStaExam(examNum, 'submit', 60)}
             onClearHistory={handleClearHistory}
           />
@@ -662,21 +836,58 @@ export default function App() {
           />
         )}
 
+        {activeView === 'gtkd-home' && (
+          <GtkdDashboard
+            history={history}
+            onBackToHub={() => navigateToView('hub')}
+            onStartRandomMock={startGtkdRandomMock}
+            onStartSegmentExam={startGtkdSegmentExam}
+            onStartFull245={startGtkdFull245}
+            onStartGroupPractice={startGtkdGroupPractice}
+            onStartRetryWrong={startRetryGtkdWrong}
+            onOpenGtkdBank={() => navigateToView('gtkd-bank')}
+            onClearHistory={handleClearHistory}
+          />
+        )}
+
+        {activeView === 'gtkd-exam' && activeGtkdExam && (
+          <ExamWorkspace
+            config={activeGtkdExam.config}
+            finishTriggerCount={finishTriggerCount}
+            questionBankById={GTKD_QUESTION_BY_ID}
+            courseHeading="[GTKD] Giao tiếp kinh doanh [DUE_Tổng_hợp_245_câu]"
+            newMockLabel="Trộn đề 40 câu mới"
+            onExitToHome={() => navigateToView('gtkd-home')}
+            onStartRetryWrong={startRetryGtkdWrong}
+            onStartNewMock={() =>
+              startGtkdRandomMock(
+                activeGtkdExam.config.gradingMode,
+                activeGtkdExam.config.gradingMode === 'submit' ? 35 : null
+              )
+            }
+            onExamSubmitted={handleGtkdExamSubmitted}
+          />
+        )}
+
         {(activeView === 'mis-bank' ||
           activeView === 'sta-bank' ||
-          activeView === 'nmkd-bank') && (
+          activeView === 'nmkd-bank' ||
+          activeView === 'gtkd-bank') && (
           <UnifiedBankView
             activeSubject={
               activeView === 'sta-bank'
                 ? 'sta2005'
                 : activeView === 'nmkd-bank'
                   ? 'nmkd2026'
-                  : 'mis2002'
+                  : activeView === 'gtkd-bank'
+                    ? 'gtkd'
+                    : 'mis2002'
             }
             initialMisSet={selectedMisSet}
             onSelectSubject={(subj) => {
               if (subj === 'sta2005') navigateToView('sta-bank');
               else if (subj === 'nmkd2026') navigateToView('nmkd-bank');
+              else if (subj === 'gtkd') navigateToView('gtkd-bank');
               else navigateToView('mis-bank');
             }}
             onStartMisChapterPractice={startChapterPractice}
@@ -689,6 +900,10 @@ export default function App() {
             onStartNmkdChapterPractice={(ch) =>
               startNmkdChapterPractice(ch, 'instant')
             }
+            onBackToGtkdHome={() => navigateToView('gtkd-home')}
+            onStartGtkdGroupPractice={(grp) =>
+              startGtkdGroupPractice(grp, 'instant')
+            }
           />
         )}
       </div>
@@ -699,10 +914,10 @@ export default function App() {
         <div className="bg-[#0B4275] dark:bg-[#0F1B2E] text-white/90">
           <div className="max-w-[1380px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
             <span>
-              DUE E-Study · MIS2002 (Bộ chuẩn &amp; Bộ đề khó) · STA2005 · MGT2002
+              DUE E-Study · MIS2002 · STA2005 · MGT2002 · GTKD
             </span>
             <span className="text-white/90 font-medium">
-              Thực hiện bởi <strong className="text-white">Anh Hoàng 51K33</strong> · 280 câu MIS2002 · 18 đề STA2005 · 10 đề NMKD 2026
+              Thực hiện bởi <strong className="text-white">Anh Hoàng 51K33</strong> · 280 câu MIS2002 · 18 đề STA2005 · 300 câu NMKD · 245 câu GTKD
             </span>
           </div>
         </div>

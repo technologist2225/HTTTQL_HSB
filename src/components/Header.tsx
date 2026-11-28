@@ -12,7 +12,10 @@ export type AppView =
   | 'sta-bank'
   | 'nmkd-home'
   | 'nmkd-exam'
-  | 'nmkd-bank';
+  | 'nmkd-bank'
+  | 'gtkd-home'
+  | 'gtkd-exam'
+  | 'gtkd-bank';
 
 interface HeaderProps {
   activeView: AppView;
@@ -40,17 +43,21 @@ export const Header: React.FC<HeaderProps> = ({
   const isMisActive = activeView === 'mis-home' || activeView === 'mis-exam';
   const isStaActive = activeView === 'sta-home' || activeView === 'sta-exam';
   const isNmkdActive = activeView === 'nmkd-home' || activeView === 'nmkd-exam';
+  const isGtkdActive = activeView === 'gtkd-home' || activeView === 'gtkd-exam';
   const isBankActive =
     activeView === 'mis-bank' ||
     activeView === 'sta-bank' ||
-    activeView === 'nmkd-bank';
+    activeView === 'nmkd-bank' ||
+    activeView === 'gtkd-bank';
 
   const quickStartLabel =
     activeSubject === 'sta2005'
       ? 'Bốc đề STA2005'
       : activeSubject === 'nmkd2026'
         ? 'Thi thử NMKD'
-        : 'Thi thử MIS2002';
+        : activeSubject === 'gtkd'
+          ? 'Thi thử GTKD'
+          : 'Thi thử MIS2002';
 
   return (
     <header className="sticky top-0 z-30 bg-white dark:bg-[#11192B] border-b border-[#E2E8F0] dark:border-[#243249] transition-colors">
@@ -114,6 +121,17 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             MGT2002
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigateView('gtkd-home')}
+            className={`py-1 transition-colors whitespace-nowrap shrink-0 border-b-2 cursor-pointer ${
+              isGtkdActive
+                ? 'text-[#C2410C] dark:text-[#FB923C] border-[#C2410C] dark:border-[#FB923C]'
+                : 'border-transparent hover:text-[#0F172A] dark:hover:text-[#F8FAFC]'
+            }`}
+          >
+            GTKD
           </button>
           <button
             type="button"
@@ -208,6 +226,15 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           MGT2002
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigateView('gtkd-home')}
+          className={`whitespace-nowrap cursor-pointer ${
+            isGtkdActive ? 'text-[#C2410C] dark:text-[#FB923C] font-bold' : ''
+          }`}
+        >
+          GTKD
         </button>
         <button
           type="button"

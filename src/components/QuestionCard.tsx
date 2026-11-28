@@ -213,6 +213,16 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   {gradeResult.status === 'correct'
                     ? 'Câu trả lời của bạn chính xác.'
                     : `Đáp án đúng là: ${question.correctOption.toUpperCase()}.`}
+                  {question.answerFlag === 'conflict' && (
+                    <span className="ml-1.5 text-xs font-bold text-[#B45309] dark:text-[#FBBF24]">
+                      (⚠ Cần lưu ý)
+                    </span>
+                  )}
+                  {question.answerFlag === 'inferred' && (
+                    <span className="ml-1.5 text-xs font-normal opacity-80">
+                      (Đáp án suy luận *)
+                    </span>
+                  )}
                 </p>
                 {gradeResult.status !== 'correct' && (
                   <p className="mt-1 text-[#0F172A] dark:text-[#F1F5F9]">
@@ -220,6 +230,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                       question.options.find((o) => o.key === question.correctOption)
                         ?.text
                     }
+                  </p>
+                )}
+                {question.note && (
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#475569] dark:text-[#CBD5E1]">
+                    <span className="font-semibold">Ghi chú: </span>
+                    {question.note}
                   </p>
                 )}
               </div>
@@ -306,6 +322,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                   <span className="font-semibold">Đáp án chuẩn: </span>
                   {q.officialAnswer}
                 </p>
+                {q.note && (
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#475569] dark:text-[#CBD5E1]">
+                    <span className="font-semibold">Ghi chú: </span>
+                    {q.note}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -443,12 +465,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <span className="text-xl font-bold tabular-nums">{displayNumber}</span>
           </div>
           <div className="text-[11px] text-[#64748B] dark:text-[#94A3B8] md:mt-0.5">
-            Chương {question.chapter} ·{' '}
-            {question.id >= 2001 && question.id <= 2140
-              ? `Bộ khó · Câu ${question.id - 2000}`
-              : question.id >= 1001 && question.id <= 1300
-                ? `Đề ${String(Math.floor((question.id - 1001) / 30) + 1).padStart(2, '0')} · Câu ${((question.id - 1001) % 30) + 1}`
-                : `Câu gốc ${question.id}`}
+            {question.id >= 3001 && question.id <= 3245
+              ? `Nhóm ${question.chapter} · Câu ${question.id - 3000}`
+              : question.id >= 2001 && question.id <= 2140
+                ? `Chương ${question.chapter} · Bộ khó · Câu ${question.id - 2000}`
+                : question.id >= 1001 && question.id <= 1300
+                  ? `Chương ${question.chapter} · Đề ${String(Math.floor((question.id - 1001) / 30) + 1).padStart(2, '0')} · Câu ${((question.id - 1001) % 30) + 1}`
+                  : `Chương ${question.chapter} · Câu gốc ${question.id}`}
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import {
   Database,
   Flame,
   History,
+  MessageSquareText,
   Play,
   RotateCcw,
   Sigma,
@@ -24,8 +25,10 @@ interface SubjectHubProps {
   onQuickStartMisHardMock: () => void;
   onQuickStartStaRandom: () => void;
   onQuickStartNmkdMock: () => void;
+  onQuickStartGtkdMock: () => void;
   onStartRetryMisWrong: (wrongIds: number[]) => void;
   onStartRetryNmkdWrong: (wrongIds: number[]) => void;
+  onStartRetryGtkdWrong: (wrongIds: number[]) => void;
   onRetakeStaExam: (examNumber: number) => void;
   onClearHistory: () => void;
 }
@@ -37,14 +40,17 @@ export const SubjectHub: React.FC<SubjectHubProps> = ({
   onQuickStartMisHardMock,
   onQuickStartStaRandom,
   onQuickStartNmkdMock,
+  onQuickStartGtkdMock,
   onStartRetryMisWrong,
   onStartRetryNmkdWrong,
+  onStartRetryGtkdWrong,
   onRetakeStaExam,
   onClearHistory,
 }) => {
   const misCount = history.filter((h) => (h.subjectId ?? 'mis2002') === 'mis2002').length;
   const staCount = history.filter((h) => h.subjectId === 'sta2005').length;
   const nmkdCount = history.filter((h) => h.subjectId === 'nmkd2026').length;
+  const gtkdCount = history.filter((h) => h.subjectId === 'gtkd').length;
 
   return (
     <main className="max-w-[1260px] mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -67,20 +73,22 @@ export const SubjectHub: React.FC<SubjectHubProps> = ({
         {/* Clean Unboxed Metadata Strip */}
         <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#475569] dark:text-[#94A3B8] tabular-nums">
           <span className="font-semibold text-[#0F172A] dark:text-[#F8FAFC]">
-            3 học phần chính thức
+            4 học phần chính thức
           </span>
           <span aria-hidden="true">·</span>
-          <span>MIS2002 (280 câu · Bộ chuẩn &amp; Bộ khó)</span>
+          <span>MIS2002 (280 câu)</span>
           <span aria-hidden="true">·</span>
           <span>STA2005 (18 đề + Bảng N(0,1))</span>
           <span aria-hidden="true">·</span>
           <span>MGT2002 (10 đề · 300 câu)</span>
+          <span aria-hidden="true">·</span>
+          <span>GTKD (245 câu · 4 nhóm)</span>
         </div>
       </section>
 
-      {/* Balanced 3-Column Subject Cards */}
+      {/* Balanced 2x2 Subject Cards */}
       <section className="py-8 border-b border-[#E2E8F0] dark:border-[#243249]">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
           {/* Subject 1: MIS2002 */}
           <div className="bg-white dark:bg-[#151F32] border border-[#D6DCE2] dark:border-[#2B3B54] rounded p-6 flex flex-col justify-between">
             <div>
@@ -281,6 +289,69 @@ export const SubjectHub: React.FC<SubjectHubProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Subject 4: GTKD (Giao tiếp kinh doanh) */}
+          <div className="bg-white dark:bg-[#151F32] border border-[#D6DCE2] dark:border-[#2B3B54] rounded p-6 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-[#7C3AED] dark:text-[#A78BFA] font-mono">
+                  <MessageSquareText className="w-4 h-4" />
+                  GTKD · TỔNG HỢP DUE
+                </span>
+                <span className="text-xs text-[#64748B] dark:text-[#94A3B8] tabular-nums">
+                  {gtkdCount > 0 ? `${gtkdCount} lượt đã làm` : '245 câu · 4 nhóm'}
+                </span>
+              </div>
+
+              <h2 className="text-xl font-bold text-[#0F172A] dark:text-[#F8FAFC]">
+                Giao tiếp kinh doanh
+              </h2>
+
+              <p className="mt-2.5 text-sm leading-relaxed text-[#475569] dark:text-[#CBD5E1]">
+                Tổng hợp 245 câu hỏi chuẩn hóa (đã gộp câu trùng từ 2 tài liệu ôn tập DUE) chia 4 nhóm và 5 đề chia đoạn, kèm ghi chú 12 câu cần lưu ý (⚠).
+              </p>
+
+              <div className="mt-4 pt-4 border-t border-[#E2E8F0] dark:border-[#243249] grid grid-cols-3 gap-2 text-xs tabular-nums">
+                <div>
+                  <div className="text-[#64748B] dark:text-[#94A3B8]">Ngân hàng</div>
+                  <div className="mt-0.5 text-sm font-bold font-mono text-[#0F172A] dark:text-[#F8FAFC]">
+                    245 câu
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#64748B] dark:text-[#94A3B8]">Phân nhóm</div>
+                  <div className="mt-0.5 text-sm font-bold font-mono text-[#0F172A] dark:text-[#F8FAFC]">
+                    4 nhóm
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[#64748B] dark:text-[#94A3B8]">Ghi chú ⚠</div>
+                  <div className="mt-0.5 text-sm font-bold font-mono text-[#C2410C] dark:text-[#FB923C]">
+                    12 câu
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenSubject('gtkd')}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#0B4275] hover:bg-[#083259] dark:bg-[#1D63A8] dark:hover:bg-[#18528C] rounded transition-colors cursor-pointer"
+              >
+                Vào môn Giao tiếp KD
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onQuickStartGtkdMock}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#0B4275] dark:text-[#38BDF8] bg-[#F8FAFC] dark:bg-[#1E293B] hover:bg-[#EEF2F6] dark:hover:bg-[#273549] border border-[#0B4275]/30 dark:border-[#38BDF8]/30 rounded transition-colors cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5" />
+                Thi thử trộn đề 40 câu (35 phút)
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -311,7 +382,7 @@ export const SubjectHub: React.FC<SubjectHubProps> = ({
               <Clock className="w-7 h-7 mx-auto mb-2 text-[#94A3B8] dark:text-[#64748B]" />
               <p>Chưa có lượt làm bài nào được lưu trên trình duyệt này.</p>
               <p className="mt-1 text-xs">
-                Hãy chọn môn MIS2002, STA2005 hoặc MGT2002 phía trên để bắt đầu làm bài và theo dõi tiến độ ôn tập.
+                Hãy chọn môn MIS2002, STA2005, MGT2002 hoặc GTKD phía trên để bắt đầu làm bài và theo dõi tiến độ ôn tập.
               </p>
             </div>
           ) : (
@@ -323,13 +394,17 @@ export const SubjectHub: React.FC<SubjectHubProps> = ({
                     ? 'STA2005'
                     : subj === 'nmkd2026'
                       ? 'MGT2002'
-                      : 'MIS2002';
+                      : subj === 'gtkd'
+                        ? 'GTKD'
+                        : 'MIS2002';
                 const subjectColor =
                   subj === 'sta2005'
                     ? 'text-[#C2410C] dark:text-[#FB923C]'
                     : subj === 'nmkd2026'
                       ? 'text-[#047857] dark:text-[#34D399]'
-                      : 'text-[#0B4275] dark:text-[#38BDF8]';
+                      : subj === 'gtkd'
+                        ? 'text-[#7C3AED] dark:text-[#A78BFA]'
+                        : 'text-[#0B4275] dark:text-[#38BDF8]';
 
                 return (
                   <div
@@ -373,6 +448,15 @@ export const SubjectHub: React.FC<SubjectHubProps> = ({
                           type="button"
                           onClick={() => onStartRetryNmkdWrong(item.wrongQuestionIds)}
                           className="inline-flex items-center gap-1 text-xs font-semibold text-[#047857] dark:text-[#34D399] hover:underline cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Ôn lại {item.wrongQuestionIds.length} câu sai
+                        </button>
+                      ) : subj === 'gtkd' && item.wrongQuestionIds.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => onStartRetryGtkdWrong(item.wrongQuestionIds)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#7C3AED] dark:text-[#A78BFA] hover:underline cursor-pointer"
                         >
                           <RotateCcw className="w-3 h-3" />
                           Ôn lại {item.wrongQuestionIds.length} câu sai
